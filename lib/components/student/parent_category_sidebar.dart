@@ -540,8 +540,6 @@ class _ParentSidebarState extends State<ParentSidebar> {
   var _ejobController=TextEditingController();
 
   Future<void> _showEditDialog(ParentModel model) async {
-
-
     String imageUrl="";
     fb.UploadTask? _uploadTask;
     Uri imageUri;
@@ -553,11 +551,7 @@ class _ParentSidebarState extends State<ParentSidebar> {
       builder: (BuildContext context) {
         return StatefulBuilder(
           builder: (context,setState){
-            _pefirstNameController.text=model.firstName;
-            _pelastNameController.text=model.lastName;
-            _pephoneController.text=model.phone;
-            _peaddressController.text=model.address;
-            _ejobController.text=model.job;
+
 
             uploadToFirebase(File imageFile) async {
               final filePath = 'images/${DateTime.now()}.png';
@@ -659,7 +653,7 @@ class _ParentSidebarState extends State<ParentSidebar> {
                                           style: Theme.of(context).textTheme.bodyText1!.apply(color: Colors.black),
                                         ),
                                         TextFormField(
-                                          controller: _pfirstNameController,
+                                          controller: _pefirstNameController,
                                           style: TextStyle(color: Colors.black),
                                           validator: (value) {
                                             if (value == null || value.isEmpty) {
@@ -711,7 +705,7 @@ class _ParentSidebarState extends State<ParentSidebar> {
                                           style: Theme.of(context).textTheme.bodyText1!.apply(color: Colors.black),
                                         ),
                                         TextFormField(
-                                          controller: _plastNameController,
+                                          controller: _pelastNameController,
                                           style: TextStyle(color: Colors.black),
                                           validator: (value) {
                                             if (value == null || value.isEmpty) {
@@ -762,7 +756,7 @@ class _ParentSidebarState extends State<ParentSidebar> {
                                   style: Theme.of(context).textTheme.bodyText1!.apply(color: Colors.black),
                                 ),
                                 TextFormField(
-                                  controller: _pphoneController,
+                                  controller: _pephoneController,
                                   style: TextStyle(color: Colors.black),
                                   validator: (value) {
                                     if (value == null || value.isEmpty) {
@@ -811,7 +805,7 @@ class _ParentSidebarState extends State<ParentSidebar> {
                                 TextFormField(
                                   minLines: 2,
                                   maxLines: 2,
-                                  controller: _paddressController,
+                                  controller: _peaddressController,
                                   style: TextStyle(color: Colors.black),
                                   validator: (value) {
                                     if (value == null || value.isEmpty) {
@@ -858,7 +852,7 @@ class _ParentSidebarState extends State<ParentSidebar> {
                                   style: Theme.of(context).textTheme.bodyText1!.apply(color: Colors.black),
                                 ),
                                 TextFormField(
-                                  controller: _jobController,
+                                  controller: _ejobController,
                                   style: TextStyle(color: Colors.black),
                                   validator: (value) {
                                     if (value == null || value.isEmpty) {
@@ -936,12 +930,12 @@ class _ParentSidebarState extends State<ParentSidebar> {
                                 final ProgressDialog pr = ProgressDialog(context: context);
                                 pr.show(max: 100, msg: "Adding");
                                 FirebaseFirestore.instance.collection('parents').doc(model.id).update({
-                                  'firstName': _pfirstNameController.text,
-                                  'lastName': _plastNameController.text,
-                                  'phone': _pphoneController.text,
-                                  'job': _jobController.text,
+                                  'firstName': _pefirstNameController.text,
+                                  'lastName': _pelastNameController.text,
+                                  'phone': _pephoneController.text,
+                                  'job': _ejobController.text,
                                   'photo':imageUrl==""?model.photo:imageUrl,
-                                  'address': _paddressController.text,
+                                  'address': _peaddressController.text,
                                 }).then((value) {
                                   pr.close();
                                   print("added");
@@ -1067,6 +1061,12 @@ class _ParentSidebarState extends State<ParentSidebar> {
                                       trailing: IconButton(
                                         icon: Icon(Icons.edit,color: Colors.blue,),
                                         onPressed: (){
+                                          ParentModel model=ParentModel.fromMap(data, document.reference.id);
+                                          _pefirstNameController.text=model.firstName;
+                                          _pelastNameController.text=model.lastName;
+                                          _pephoneController.text=model.phone;
+                                          _peaddressController.text=model.address;
+                                          _ejobController.text=model.job;
                                           _showEditDialog(ParentModel.fromMap(data, document.reference.id));
                                         },
                                       ),

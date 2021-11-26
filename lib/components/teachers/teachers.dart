@@ -48,7 +48,6 @@ class _TeachersState extends State<Teachers> {
 
   var _nationalIdController=TextEditingController();
   var _bloodTypeController=TextEditingController();
-  var _dutyController=TextEditingController();
   register(String photo) async{
     final ProgressDialog pr = ProgressDialog(context: context);
     pr.show(max: 100, msg: "Please wait");
@@ -72,7 +71,6 @@ class _TeachersState extends State<Teachers> {
       'name': _nameController.text,
       'phone': _phoneController.text,
       'address': _addressController.text,
-      'duty': _dutyController.text,
       'password':"password",
       'token': "none",
       'topic': 'teacher',
@@ -103,6 +101,8 @@ class _TeachersState extends State<Teachers> {
     pr.close();
   }
   Future<void> _showAddDialog() async {
+    List<_TeacherCheckList> tempDepartments=departments;
+    List<_TeacherCheckList> tempSub=subjects;
     String imageUrl="";
     fb.UploadTask? _uploadTask;
     Uri imageUri;
@@ -220,6 +220,34 @@ class _TeachersState extends State<Teachers> {
                         },
                         onStepContinue: () {
                           if (_step < 3) {
+                            if(_step==1){
+                              setState(() {
+                                tempDepartments=[];
+                              });
+                              departments.forEach((element) {
+                                schools.forEach((schoolSelected) {
+                                  if(schoolSelected.check && schoolSelected.model.name==element.model.schoolName){
+                                    setState(() {
+                                      tempDepartments.add(element);
+                                    });
+                                  }
+                                });
+                              });
+                            }
+                            if(_step==2){
+                              setState(() {
+                                tempSub=[];
+                              });
+                              tempSub.forEach((element) {
+                                departments.forEach((depSelected) {
+                                  if(depSelected.check && depSelected.model.name==element.model.department){
+                                    setState(() {
+                                      tempSub.add(element);
+                                    });
+                                  }
+                                });
+                              });
+                            }
                             setState(() { _step += 1; });
                             print("step continue $_step");
                           }
@@ -433,53 +461,6 @@ class _TeachersState extends State<Teachers> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      "Duty",
-                                      style: Theme.of(context).textTheme.bodyText1!.apply(color: Colors.black),
-                                    ),
-                                    TextFormField(
-                                      controller: _dutyController,
-                                      style: TextStyle(color: Colors.black),
-                                      validator: (value) {
-                                        if (value == null || value.isEmpty) {
-                                          return 'Please enter some text';
-                                        }
-                                        return null;
-                                      },
-                                      decoration: InputDecoration(
-                                        contentPadding: EdgeInsets.all(15),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(7.0),
-                                          borderSide: BorderSide(
-                                            color: primaryColor,
-                                          ),
-                                        ),
-                                        enabledBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(7.0),
-                                          borderSide: BorderSide(
-                                              color: primaryColor,
-                                              width: 0.5
-                                          ),
-                                        ),
-                                        border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(7.0),
-                                          borderSide: BorderSide(
-                                            color: primaryColor,
-                                            width: 0.5,
-                                          ),
-                                        ),
-                                        hintText: "",
-                                        floatingLabelBehavior: FloatingLabelBehavior.always,
-                                      ),
-                                    ),
-
-                                  ],
-                                ),
-                                SizedBox(height: 10,),
-                                Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
                                       "National ID",
                                       style: Theme.of(context).textTheme.bodyText1!.apply(color: Colors.black),
                                     ),
@@ -642,16 +623,16 @@ class _TeachersState extends State<Teachers> {
                             content: Container(
                               child: ListView.builder(
                                 shrinkWrap: true,
-                                itemCount: departments.length,
+                                itemCount: tempDepartments.length,
                                 itemBuilder: (context,int i){
                                   return Padding(
                                       padding: const EdgeInsets.all(15.0),
                                       child: CheckboxListTile(
-                                        title: Text(departments[i].model.name),
-                                        value: departments[i].check,
+                                        title: Text(tempDepartments[i].model.name),
+                                        value: tempDepartments[i].check,
                                         onChanged: (bool? value) {
                                           setState(() {
-                                            departments[i].check = value!;
+                                            tempDepartments[i].check = value!;
                                           });
                                         },
                                       )
@@ -667,16 +648,16 @@ class _TeachersState extends State<Teachers> {
                             content:Container(
                               child: ListView.builder(
                                 shrinkWrap: true,
-                                itemCount: subjects.length,
+                                itemCount: tempSub.length,
                                 itemBuilder: (context,int i){
                                   return Padding(
                                       padding: const EdgeInsets.all(15.0),
                                       child: CheckboxListTile(
-                                        title: Text(subjects[i].model.name),
-                                        value: subjects[i].check,
+                                        title: Text(tempSub[i].model.name),
+                                        value: tempSub[i].check,
                                         onChanged: (bool? value) {
                                           setState(() {
-                                            subjects[i].check = value!;
+                                            tempSub[i].check = value!;
                                           });
                                         },
                                       )

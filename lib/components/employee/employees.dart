@@ -375,7 +375,8 @@ class _EmployeesState extends State<Employees> {
                                           child: Container(
                                             width: MediaQuery.of(context).size.width*0.3,
                                             child: StreamBuilder<QuerySnapshot>(
-                                              stream: FirebaseFirestore.instance.collection('departments').snapshots(),
+                                              stream: FirebaseFirestore.instance.collection('departments')
+                                                  .where("schoolName",isEqualTo: schoolController.text).snapshots(),
                                               builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
                                                 if (snapshot.hasError) {
                                                   return Center(

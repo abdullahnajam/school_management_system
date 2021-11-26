@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class TeacherModel{
   String id,email,name,photo,phone,address,nationalId,bloodType,status,uniqueId;
   List schools,departments,subjects;
-  String duty;
 
   bool isArchived;
   int datePosted;
@@ -24,7 +23,6 @@ class TeacherModel{
         schools = map['schools'],
         departments = map['departments'],
         subjects = map['subjects'],
-        duty = map['duty'],
         isArchived = map['isArchived'],
         datePosted = map['datePosted'];
 

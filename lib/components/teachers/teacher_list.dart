@@ -97,9 +97,7 @@ class _TeacherListState extends State<TeacherList> {
                     DataColumn(
                       label: Text("Phone"),
                     ),
-                    DataColumn(
-                      label: Text("Duty"),
-                    ),
+
                     DataColumn(
                       label: Text("Photo"),
                     ),
@@ -130,7 +128,6 @@ class _TeacherListState extends State<TeacherList> {
 
   var _nationalIdController=TextEditingController();
   var _bloodTypeController=TextEditingController();
-  var _dutyController=TextEditingController();
 
   List<_TeacherCheckList> schools=[];
   List<_TeacherCheckList> departments=[];
@@ -156,7 +153,6 @@ class _TeacherListState extends State<TeacherList> {
             _nameController.text=model.name;
             _phoneController.text=model.phone;
             _addressController.text=model.address;
-            _dutyController.text=model.duty;
             _nationalIdController.text=model.nationalId.toString();
             _bloodTypeController.text=model.bloodType.toString();
 
@@ -296,7 +292,6 @@ class _TeacherListState extends State<TeacherList> {
                                 'name': _nameController.text,
                                 'phone': _phoneController.text,
                                 'address': _addressController.text,
-                                'duty': _dutyController.text,
                                 'schools': schoolIds,
                                 'departments': departmentIds,
                                 'subjects': subjectIds,
@@ -428,53 +423,6 @@ class _TeacherListState extends State<TeacherList> {
                                         minLines: 2,
                                         maxLines: 2,
                                         controller: _addressController,
-                                        style: TextStyle(color: Colors.black),
-                                        validator: (value) {
-                                          if (value == null || value.isEmpty) {
-                                            return 'Please enter some text';
-                                          }
-                                          return null;
-                                        },
-                                        decoration: InputDecoration(
-                                          contentPadding: EdgeInsets.all(15),
-                                          focusedBorder: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(7.0),
-                                            borderSide: BorderSide(
-                                              color: primaryColor,
-                                            ),
-                                          ),
-                                          enabledBorder: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(7.0),
-                                            borderSide: BorderSide(
-                                                color: primaryColor,
-                                                width: 0.5
-                                            ),
-                                          ),
-                                          border: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(7.0),
-                                            borderSide: BorderSide(
-                                              color: primaryColor,
-                                              width: 0.5,
-                                            ),
-                                          ),
-                                          hintText: "",
-                                          floatingLabelBehavior: FloatingLabelBehavior.always,
-                                        ),
-                                      ),
-
-                                    ],
-                                  ),
-                                  SizedBox(height: 10,),
-                                  Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "Duty",
-                                        style: Theme.of(context).textTheme.bodyText1!.apply(color: Colors.black),
-                                      ),
-                                      TextFormField(
-                                        controller: _dutyController,
                                         style: TextStyle(color: Colors.black),
                                         validator: (value) {
                                           if (value == null || value.isEmpty) {
@@ -744,7 +692,6 @@ class _TeacherListState extends State<TeacherList> {
           DataCell(Text(model.name)),
           DataCell(Text(model.email)),
           DataCell(Text(model.phone)),
-          DataCell(Text(model.duty)),
           DataCell(Image.network(model.photo,height: 50,width: 50,)),
           DataCell(Row(
             children: [

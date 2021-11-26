@@ -1,15 +1,10 @@
-import 'dart:html';
-import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:school_management_system/components/academic/classes/class_list.dart';
 import 'package:school_management_system/components/academic/subjects/subject_list.dart';
 import 'package:school_management_system/utils/constants.dart';
 import 'package:school_management_system/utils/header.dart';
 import 'package:school_management_system/utils/responsive.dart';
 import 'package:sn_progress_dialog/progress_dialog.dart';
-import 'package:firebase/firebase.dart' as fb;
 
 class Subjects extends StatefulWidget {
 
@@ -105,134 +100,7 @@ class _SubjectsState extends State<Subjects> {
                           )
                         ],
                       ),
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Class",
-                            style: Theme.of(context).textTheme.bodyText1!.apply(color: Colors.black),
-                          ),
-                          TextFormField(
-                            readOnly: true,
-                            onTap: (){
-                              showDialog(
-                                  context: context,
-                                  builder: (BuildContext context){
-                                    return StatefulBuilder(
-                                      builder: (context,setState){
-                                        return Dialog(
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: const BorderRadius.all(
-                                              Radius.circular(10.0),
-                                            ),
-                                          ),
-                                          insetAnimationDuration: const Duration(seconds: 1),
-                                          insetAnimationCurve: Curves.fastOutSlowIn,
-                                          elevation: 2,
-                                          child: Container(
-                                            width: MediaQuery.of(context).size.width*0.3,
-                                            child: StreamBuilder<QuerySnapshot>(
-                                              stream: FirebaseFirestore.instance.collection('classes').snapshots(),
-                                              builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                                                if (snapshot.hasError) {
-                                                  return Center(
-                                                    child: Column(
-                                                      children: [
-                                                        Image.asset("assets/images/wrong.png",width: 150,height: 150,),
-                                                        Text("Something Went Wrong",style: TextStyle(color: Colors.black))
 
-                                                      ],
-                                                    ),
-                                                  );
-                                                }
-
-                                                if (snapshot.connectionState == ConnectionState.waiting) {
-                                                  return Center(
-                                                    child: CircularProgressIndicator(),
-                                                  );
-                                                }
-                                                if (snapshot.data!.size==0){
-                                                  return Center(
-                                                    child: Column(
-                                                      children: [
-                                                        Image.asset("assets/images/empty.png",width: 150,height: 150,),
-                                                        Text("No Class Added",style: TextStyle(color: Colors.black))
-
-                                                      ],
-                                                    ),
-                                                  );
-
-                                                }
-
-                                                return new ListView(
-                                                  shrinkWrap: true,
-                                                  children: snapshot.data!.docs.map((DocumentSnapshot document) {
-                                                    Map<String, dynamic> data = document.data() as Map<String, dynamic>;
-
-                                                    return new Padding(
-                                                      padding: const EdgeInsets.all(15.0),
-                                                      child: ListTile(
-                                                        onTap: (){
-                                                          setState(() {
-                                                            _classController.text="${data['name']}";
-                                                            classId=document.reference.id;
-                                                          });
-                                                          Navigator.pop(context);
-                                                        },
-
-                                                        title: Text("${data['name']}",style: TextStyle(color: Colors.black),),
-                                                      ),
-                                                    );
-                                                  }).toList(),
-                                                );
-                                              },
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    );
-                                  }
-                              );
-                            },
-                            controller: _classController,
-                            style: TextStyle(color: Colors.black),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter some text';
-                              }
-                              return null;
-                            },
-                            decoration: InputDecoration(
-                              contentPadding: EdgeInsets.all(15),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(7.0),
-                                borderSide: BorderSide(
-                                  color: primaryColor,
-                                ),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(7.0),
-                                borderSide: BorderSide(
-                                    color: primaryColor,
-                                    width: 0.5
-                                ),
-                              ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(7.0),
-                                borderSide: BorderSide(
-                                  color: primaryColor,
-                                  width: 0.5,
-                                ),
-                              ),
-                              hintText: "",
-                              floatingLabelBehavior: FloatingLabelBehavior.always,
-                            ),
-                          ),
-
-                        ],
-                      ),
-                      SizedBox(height: 10,),
                       Column(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -441,7 +309,8 @@ class _SubjectsState extends State<Subjects> {
                                           child: Container(
                                             width: MediaQuery.of(context).size.width*0.3,
                                             child: StreamBuilder<QuerySnapshot>(
-                                              stream: FirebaseFirestore.instance.collection('departments').snapshots(),
+                                              stream: FirebaseFirestore.instance.collection('departments')
+                                                  .where('schoolName',isEqualTo:schoolController.text).snapshots(),
                                               builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
                                                 if (snapshot.hasError) {
                                                   return Center(
@@ -569,7 +438,8 @@ class _SubjectsState extends State<Subjects> {
                                           child: Container(
                                             width: MediaQuery.of(context).size.width*0.3,
                                             child: StreamBuilder<QuerySnapshot>(
-                                              stream: FirebaseFirestore.instance.collection('grades').snapshots(),
+                                              stream: FirebaseFirestore.instance.collection('grades')
+                                                  .where('department',isEqualTo:departmentController.text).snapshots(),
                                               builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
                                                 if (snapshot.hasError) {
                                                   return Center(
@@ -632,6 +502,135 @@ class _SubjectsState extends State<Subjects> {
                               );
                             },
                             controller: gradeController,
+                            style: TextStyle(color: Colors.black),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter some text';
+                              }
+                              return null;
+                            },
+                            decoration: InputDecoration(
+                              contentPadding: EdgeInsets.all(15),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(7.0),
+                                borderSide: BorderSide(
+                                  color: primaryColor,
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(7.0),
+                                borderSide: BorderSide(
+                                    color: primaryColor,
+                                    width: 0.5
+                                ),
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(7.0),
+                                borderSide: BorderSide(
+                                  color: primaryColor,
+                                  width: 0.5,
+                                ),
+                              ),
+                              hintText: "",
+                              floatingLabelBehavior: FloatingLabelBehavior.always,
+                            ),
+                          ),
+
+                        ],
+                      ),
+                      SizedBox(height: 10,),
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Class",
+                            style: Theme.of(context).textTheme.bodyText1!.apply(color: Colors.black),
+                          ),
+                          TextFormField(
+                            readOnly: true,
+                            onTap: (){
+                              showDialog(
+                                  context: context,
+                                  builder: (BuildContext context){
+                                    return StatefulBuilder(
+                                      builder: (context,setState){
+                                        return Dialog(
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: const BorderRadius.all(
+                                              Radius.circular(10.0),
+                                            ),
+                                          ),
+                                          insetAnimationDuration: const Duration(seconds: 1),
+                                          insetAnimationCurve: Curves.fastOutSlowIn,
+                                          elevation: 2,
+                                          child: Container(
+                                            width: MediaQuery.of(context).size.width*0.3,
+                                            child: StreamBuilder<QuerySnapshot>(
+                                              stream: FirebaseFirestore.instance.collection('classes')
+                                                  .where('department',isEqualTo:gradeController.text).snapshots(),
+                                              builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                                                if (snapshot.hasError) {
+                                                  return Center(
+                                                    child: Column(
+                                                      children: [
+                                                        Image.asset("assets/images/wrong.png",width: 150,height: 150,),
+                                                        Text("Something Went Wrong",style: TextStyle(color: Colors.black))
+
+                                                      ],
+                                                    ),
+                                                  );
+                                                }
+
+                                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                                  return Center(
+                                                    child: CircularProgressIndicator(),
+                                                  );
+                                                }
+                                                if (snapshot.data!.size==0){
+                                                  return Center(
+                                                    child: Column(
+                                                      children: [
+                                                        Image.asset("assets/images/empty.png",width: 150,height: 150,),
+                                                        Text("No Class Added",style: TextStyle(color: Colors.black))
+
+                                                      ],
+                                                    ),
+                                                  );
+
+                                                }
+
+                                                return new ListView(
+                                                  shrinkWrap: true,
+                                                  children: snapshot.data!.docs.map((DocumentSnapshot document) {
+                                                    Map<String, dynamic> data = document.data() as Map<String, dynamic>;
+
+                                                    return new Padding(
+                                                      padding: const EdgeInsets.all(15.0),
+                                                      child: ListTile(
+                                                        onTap: (){
+                                                          setState(() {
+                                                            _classController.text="${data['name']}";
+                                                            classId=document.reference.id;
+                                                          });
+                                                          Navigator.pop(context);
+                                                        },
+
+                                                        title: Text("${data['name']}",style: TextStyle(color: Colors.black),),
+                                                      ),
+                                                    );
+                                                  }).toList(),
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    );
+                                  }
+                              );
+                            },
+                            controller: _classController,
                             style: TextStyle(color: Colors.black),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
