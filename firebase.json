@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "site": "schoolpanel4",
+    "site": "schoolpanel6",
     "public": "build/web",
     "ignore": [
       "firebase.json",

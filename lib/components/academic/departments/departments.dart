@@ -287,7 +287,6 @@ class _DepartmentsState extends State<Departments> {
                             ),
                             SizedBox(height: 10,),
                             CheckboxListTile(
-
                               title: const Text('Sub Department',style: TextStyle(color: Colors.black),),
                               value: isSub,
                               onChanged: (bool? value) {

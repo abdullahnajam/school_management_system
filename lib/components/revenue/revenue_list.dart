@@ -1312,11 +1312,9 @@ class _RevenueListState extends State<RevenueList> {
                       label: Text("Fee"),
                     ),
                     DataColumn(
-                      label: Text("Due Date"),
+                      label: Text("Date"),
                     ),
-                    DataColumn(
-                      label: Text("Year"),
-                    ),
+
                     DataColumn(
                       label: Text("Status"),
                     ),
@@ -2833,8 +2831,7 @@ class _RevenueListState extends State<RevenueList> {
           DataCell(Text(model.student)),
           DataCell(Text(model.feeCategory)),
           DataCell(Text(model.fees.toString())),
-          DataCell(Text(model.dueDate.toString())),
-          DataCell(Text(model.academicYear)),
+          DataCell(Text(model.fromDate.toString())),
           DataCell(Text(model.status.toString()),onTap: (){
             if(role=="Accountant"){
               _showChangeStatusDialog(model, context);
@@ -2860,11 +2857,11 @@ class _RevenueListState extends State<RevenueList> {
                     title: 'Delete Fees',
                     desc: 'Are you sure you want to delete this record?',
                     btnCancelOnPress: () {
-                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => EmployeeScreen()));
+                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => RevenueScreen()));
                     },
                     btnOkOnPress: () {
                       FirebaseFirestore.instance.collection('fees').doc(model.id).delete().then((value) =>
-                          Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => EmployeeScreen())));
+                          Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => RevenueScreen())));
                     },
                   )..show();
                 },

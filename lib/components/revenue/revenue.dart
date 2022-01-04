@@ -935,7 +935,7 @@ class _RevenueState extends State<Revenue> {
                             "",
                             style: Theme.of(context).textTheme.subtitle1,
                           ),
-                          role=="Accountant"?Container():ElevatedButton.icon(
+                         /* *//*role=="Accountant"?Container():*//*ElevatedButton.icon(
                             style: TextButton.styleFrom(
                               padding: EdgeInsets.symmetric(
                                 horizontal: defaultPadding * 1.5,
@@ -948,7 +948,7 @@ class _RevenueState extends State<Revenue> {
                             },
                             icon: Icon(Icons.add),
                             label: Text("Add Fees"),
-                          ),
+                          ),*/
                         ],
                       ),
 

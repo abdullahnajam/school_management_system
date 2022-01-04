@@ -6,6 +6,7 @@ import 'package:school_management_system/screens/academic/class_screen.dart';
 import 'package:school_management_system/screens/academic/department_screen.dart';
 import 'package:school_management_system/screens/academic/grade_screen.dart';
 import 'package:school_management_system/screens/academic/school_screen.dart';
+import 'package:school_management_system/screens/academic/school_year_screen.dart';
 import 'package:school_management_system/screens/academic/subject_screen.dart';
 import 'package:school_management_system/screens/activity_screen.dart';
 import 'package:school_management_system/screens/admin_screen.dart';
@@ -19,6 +20,11 @@ import 'package:school_management_system/screens/bus/bus_screen.dart';
 import 'package:school_management_system/screens/discount_screen.dart';
 import 'package:school_management_system/screens/employee_screen.dart';
 import 'package:school_management_system/screens/expense_screen.dart';
+import 'package:school_management_system/screens/financial/activity_fee_screen.dart';
+import 'package:school_management_system/screens/financial/bus_fee_screen.dart';
+import 'package:school_management_system/screens/financial/school_fee_screen.dart';
+import 'package:school_management_system/screens/financial/uniform_fee_screen.dart';
+import 'package:school_management_system/screens/places/place_screen.dart';
 import 'package:school_management_system/screens/revenue_screen.dart';
 import 'package:school_management_system/screens/signin.dart';
 import 'package:school_management_system/screens/student_screen.dart';
@@ -130,6 +136,14 @@ class _SideMenuState extends State<SideMenu> {
                     svgSrc: "assets/icons/subject.png",
                     press: () {
                       Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => SubjectScreen()));
+
+                    },
+                  ),
+                  DrawerListTile(
+                    title: "School Year",
+                    svgSrc: "assets/icons/subject.png",
+                    press: () {
+                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => SchoolYearScreen()));
 
                     },
                   ),
@@ -379,6 +393,52 @@ class _SideMenuState extends State<SideMenu> {
                   height: 20,
                 ),
                 title: Text(
+                  "Financial",
+                  style: TextStyle(color: Colors.black),
+                ),
+                children: <Widget>[
+                  DrawerListTile(
+                    title: "School Fees",
+                    svgSrc: "assets/icons/department.png",
+                    press: () {
+                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => SchoolFeesScreen()));
+
+                    },
+                  ),
+                  DrawerListTile(
+                    title: "Bus Fees",
+                    svgSrc: "assets/icons/school.png",
+                    press: () {
+                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => BusFeeScreen()));
+
+                    },
+                  ),
+                  DrawerListTile(
+                    title: "Activity Fees",
+                    svgSrc: "assets/icons/department.png",
+                    press: () {
+                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => ActivityFeeScreen()));
+
+                    },
+                  ),
+                  DrawerListTile(
+                    title: "Uniform Fees",
+                    svgSrc: "assets/icons/department.png",
+                    press: () {
+                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => UniformFeeScreen()));
+
+                    },
+                  ),
+
+                ],
+              ),
+              ExpansionTile(
+                leading: Image.asset(
+                  "assets/icons/home.png",
+                  color: Colors.black,
+                  height: 20,
+                ),
+                title: Text(
                   "School Revenue",
                   style: TextStyle(color: Colors.black),
                 ),
@@ -407,6 +467,14 @@ class _SideMenuState extends State<SideMenu> {
                 svgSrc: "assets/icons/expense.png",
                 press: () {
                   Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => ExpenseScreen()));
+
+                },
+              ),
+              DrawerListTile(
+                title: "Places",
+                svgSrc: "assets/icons/expense.png",
+                press: () {
+                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => PlaceScreen()));
 
                 },
               ),
