@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
+import 'package:school_management_system/components/student/student_fees_list.dart';
 import 'package:school_management_system/model/class_model.dart';
 import 'package:school_management_system/model/department_model.dart';
 import 'package:school_management_system/model/grade_model.dart';
@@ -17,15 +18,17 @@ import 'package:school_management_system/screens/student_screen.dart';
 import 'package:school_management_system/utils/constants.dart';
 import 'package:sn_progress_dialog/progress_dialog.dart';
 import 'package:firebase/firebase.dart' as fb;
-class StudentList extends StatefulWidget {
-  const StudentList({Key? key}) : super(key: key);
+class StudentDetailTab extends StatefulWidget {
+  StudentModel studentModel;
+
+  StudentDetailTab(this.studentModel);
 
   @override
-  _StudentListState createState() => _StudentListState();
+  _StudentDetailTabState createState() => _StudentDetailTabState();
 }
 
 
-class _StudentListState extends State<StudentList> {
+class _StudentDetailTabState extends State<StudentDetailTab> {
 
 
 
@@ -45,75 +48,45 @@ class _StudentListState extends State<StudentList> {
             "Students",
             style: Theme.of(context).textTheme.subtitle1,
           ),
-          StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance.collection('students').snapshots(),
-            builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-              if (snapshot.hasError) {
-                return Text('Something went wrong');
-              }
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Container(
-                  margin: EdgeInsets.all(30),
-                  alignment: Alignment.center,
-                  child: CircularProgressIndicator(),
-                );
-              }
-              if (snapshot.data!.size==0){
-                return Container(
-                  width: double.infinity,
-                  margin: EdgeInsets.all(20),
-                  padding: EdgeInsets.all(80),
-                  alignment: Alignment.center,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Lottie.asset('assets/json/empty.json',height: 100,width: 120),
-                      Text('No students are added'),
-                    ],
+          DefaultTabController(
+              length: 2,
+              child:Column(
+                children: [
+                  Container(
+                    padding : EdgeInsets.all(8),
+                    margin: EdgeInsets.all(8),
+                    child: TabBar(
+                      labelColor: primaryColor,
+                      unselectedLabelColor: Colors.grey,
+
+                      /*indicator:  UnderlineTabIndicator(
+                          borderSide: BorderSide(width: 0.0,color: Colors.white),
+                          insets: EdgeInsets.symmetric(horizontal:16.0)
+                      ),*/
+
+                      tabs: [
+                        Tab(text: 'Fees'),
+                        Tab(text: 'Parents'),
+                      ],
+                    ),
+
                   ),
-                );
-              }
-              print("size ${snapshot.data!.size}");
-              return new SizedBox(
-                width: double.infinity,
-                child: DataTable2(
 
-                    showCheckboxColumn: false,
-                  columnSpacing: defaultPadding,
-                  minWidth: 600,
-                  columns: [
-                    DataColumn(
-                      label: Text("Code"),
-                    ),
-                    DataColumn(
-                      label: Text("Name"),
-                    ),
+                  Container(
+                    height: MediaQuery.of(context).size.height*0.55,
 
-                    DataColumn(
-                      label: Text("Email"),
-                    ),
-                    DataColumn(
-                      label: Text("Phone"),
-                    ),
-                    DataColumn(
-                      label: Text("Address"),
-                    ),
-                    DataColumn(
-                      label: Text("Photo"),
-                    ),
-                    DataColumn(
-                      label: Text("Actions"),
-                    ),
+                    child: TabBarView(children: <Widget>[
+                      StudentFeeList(widget.studentModel.id),
+                      Container(),
 
+                    ]),
+                  )
 
-                  ],
-                  rows: _buildList(context, snapshot.data!.docs)
+                ],
 
-                ),
-              );
-            },
+              )
           ),
+
 
 
         ],
@@ -256,17 +229,19 @@ Future<void> _showEdit(BuildContext context,StudentModel model) async {
                       child: Stepper(
                         type: StepperType.horizontal,
                         controlsBuilder: (BuildContext context, ControlsDetails controls) {
-                          return Row(
-                            children: <Widget>[
-                              TextButton(
-                                onPressed: controls.onStepContinue,
-                                child: _step==2?  Text('Update Student'):Text('Continue'),
-                              ),
-                              TextButton(
-                                onPressed: controls.onStepCancel,
-                                child: const Text('Back'),
-                              ),
-                            ],
+                          return Container(
+                            child: Row(
+                              children: <Widget>[
+                                TextButton(
+                                  onPressed: controls.onStepContinue,
+                                  child: _step==2?  Text('Update Student'):Text('Continue'),
+                                ),
+                                TextButton(
+                                  onPressed: controls.onStepCancel,
+                                  child: const Text('Back'),
+                                ),
+                              ],
+                            ),
                           );
                         },
                         currentStep: _step,

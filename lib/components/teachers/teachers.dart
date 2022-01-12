@@ -198,15 +198,15 @@ class _TeachersState extends State<Teachers> {
                     Expanded(
                       child: Stepper(
                         type: StepperType.horizontal,
-                        controlsBuilder: (BuildContext context, {UI.VoidCallback? onStepContinue, UI.VoidCallback? onStepCancel}) {
+                        controlsBuilder: (BuildContext context, ControlsDetails controls) {
                           return Row(
                             children: <Widget>[
                               TextButton(
-                                onPressed: onStepContinue,
+                                onPressed: controls.onStepContinue,
                                 child: _step==3?  Text('Add Teacher'):Text('Continue'),
                               ),
                               TextButton(
-                                onPressed: onStepCancel,
+                                onPressed: controls.onStepCancel,
                                 child: const Text('Back'),
                               ),
                             ],
@@ -238,7 +238,7 @@ class _TeachersState extends State<Teachers> {
                               setState(() {
                                 tempSub=[];
                               });
-                              tempSub.forEach((element) {
+                              subjects.forEach((element) {
                                 departments.forEach((depSelected) {
                                   if(depSelected.check && depSelected.model.name==element.model.department){
                                     setState(() {
@@ -712,6 +712,9 @@ class _TeachersState extends State<Teachers> {
                               ),
                             ),
                             onPressed: ()async {
+                              schools=[];
+                              departments=[];
+                              subjects=[];
                               final ProgressDialog pr = ProgressDialog(context: context);
                               pr.show(max: 100, msg: "Please wait");
                               await FirebaseFirestore.instance

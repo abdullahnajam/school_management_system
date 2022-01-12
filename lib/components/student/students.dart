@@ -336,15 +336,15 @@ class _StudentsState extends State<Students> {
                       Expanded(
                         child: Stepper(
                           type: StepperType.horizontal,
-                          controlsBuilder: (BuildContext context, {UI.VoidCallback? onStepContinue, UI.VoidCallback? onStepCancel}) {
+                          controlsBuilder: (BuildContext context, ControlsDetails controls) {
                             return Row(
                               children: <Widget>[
                                 TextButton(
-                                  onPressed: onStepContinue,
+                                  onPressed: controls.onStepContinue,
                                   child: _step==2?  Text('Add Student'):Text('Continue'),
                                 ),
                                 TextButton(
-                                  onPressed: onStepCancel,
+                                  onPressed: controls.onStepCancel,
                                   child: const Text('Back'),
                                 ),
                               ],

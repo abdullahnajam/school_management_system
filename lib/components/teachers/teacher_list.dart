@@ -137,6 +137,7 @@ class _TeacherListState extends State<TeacherList> {
     List schoolId=model.schools;
     List departmentId=model.departments;
     List subjectId=model.subjects;
+
     String imageUrl="";
     fb.UploadTask? _uploadTask;
     Uri imageUri;
@@ -245,15 +246,15 @@ class _TeacherListState extends State<TeacherList> {
                       Expanded(
                         child:Stepper(
                           type: StepperType.horizontal,
-                          controlsBuilder: (BuildContext context, {UI.VoidCallback? onStepContinue, UI.VoidCallback? onStepCancel}) {
+                          controlsBuilder: (BuildContext context, ControlsDetails controls) {
                             return Row(
                               children: <Widget>[
                                 TextButton(
-                                  onPressed: onStepContinue,
+                                  onPressed: controls.onStepContinue,
                                   child: _step==3?  Text('Update Teacher'):Text('Continue'),
                                 ),
                                 TextButton(
-                                  onPressed: onStepCancel,
+                                  onPressed: controls.onStepCancel,
                                   child: const Text('Back'),
                                 ),
                               ],
@@ -721,6 +722,9 @@ class _TeacherListState extends State<TeacherList> {
                 icon: Icon(Icons.edit),
                 color: primaryColor,
                 onPressed: ()async{
+                  schools=[];
+                  departments=[];
+                  subjects=[];
                   final ProgressDialog pr = ProgressDialog(context: context);
                   pr.show(max: 100, msg: "Please wait");
                   await FirebaseFirestore.instance

@@ -33,6 +33,7 @@ class _ActivityFeesState extends State<ActivityFees> {
   var schoolController=TextEditingController();
   var departmentController=TextEditingController();
   var activityController=TextEditingController();
+
   add(String schoolId,departmentId,activityId) async{
     print("rr");
     final f = new DateFormat('MM-yyyy');
@@ -68,7 +69,7 @@ class _ActivityFeesState extends State<ActivityFees> {
             'discount': "",
             'discountId': "",
             'feeCategoryId': "",
-            'feeCategory': "Activity Fee",
+            'feeCategory': "Activity Fees",
             'fees': int.parse(feesController.text),
             'academicYear': "2022",
             'dueDateInMilli': 0,
