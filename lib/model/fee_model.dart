@@ -4,7 +4,7 @@ class FeeModel{
   //status = ['paid', 'not paid', 'over due']
   String id,student,studentId,parent,parentId,dueDate,fromDate,discount,discountId,status,feeCategory,feeCategoryId;
   int fees,dueDateInMilli,fromDateInMilli;
-  String school,department,academicYear,grade,schoolId,departmentId,gradeId,message;
+  String school,department,academicYear,grade,schoolId,departmentId,gradeId,message,className,classId;
   bool isArchived,isDiscountInPercentage;
   int amountPaid,amountDue,cashPayment,visaPayment,masterCardPayment;
   int datePosted;
@@ -15,6 +15,8 @@ class FeeModel{
       : id=key,
         amountDue = map['amountDue'],
         message = map['message'],
+        className = map['className'],
+        classId = map['classId'],
         amountPaid = map['amountPaid'],
         cashPayment = map['cashPayment'],
         visaPayment = map['visaPayment'],

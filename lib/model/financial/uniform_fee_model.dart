@@ -1,15 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class UniformFeeModel{
-  /*'fees': feesController.text,
-      'school': schoolController.text,
-      'department': departmentController.text,
-      'grade': _gradeController.text,
-      'month': _monthController.text,
-      'date': date!.millisecondsSinceEpoch,
-      'isArchived': false,
-      'status':"Active",
-      'datePosted': DateTime.now().millisecondsSinceEpoch,*/
+  
   String id,fees,uniformItem,uniformItemId,status;
   bool isArchived;
   int datePosted;

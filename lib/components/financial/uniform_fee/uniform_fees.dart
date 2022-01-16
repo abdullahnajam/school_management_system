@@ -74,6 +74,8 @@ class _UniformFeesState extends State<UniformFees> {
             'discountId': "",
             'feeCategoryId': "",
             'feeCategory': "Uniform Fees",
+            'classId':stdModel.classId,
+            'className':stdModel.className,
             'fees': int.parse(feesController.text),
             'academicYear': "2022",
             'dueDateInMilli': 0,

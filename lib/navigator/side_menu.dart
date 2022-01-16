@@ -25,8 +25,10 @@ import 'package:school_management_system/screens/financial/bus_fee_screen.dart';
 import 'package:school_management_system/screens/financial/school_fee_screen.dart';
 import 'package:school_management_system/screens/financial/uniform_fee_screen.dart';
 import 'package:school_management_system/screens/places/place_screen.dart';
+import 'package:school_management_system/screens/reports/income/income_screen.dart';
 import 'package:school_management_system/screens/revenue_screen.dart';
 import 'package:school_management_system/screens/signin.dart';
+import 'package:school_management_system/screens/staff_screen.dart';
 import 'package:school_management_system/screens/student_screen.dart';
 import 'package:school_management_system/screens/supply/supply_delivery_screen.dart';
 import 'package:school_management_system/screens/supply/supply_items_screen.dart';
@@ -163,6 +165,14 @@ class _SideMenuState extends State<SideMenu> {
                 svgSrc: "assets/icons/employee.png",
                 press: () {
                   Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => EmployeeScreen()));
+
+                },
+              ),
+              DrawerListTile(
+                title: "Staff",
+                svgSrc: "assets/icons/department.png",
+                press: () {
+                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => StaffScreen()));
 
                 },
               ),
@@ -469,6 +479,52 @@ class _SideMenuState extends State<SideMenu> {
                   Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => ExpenseScreen()));
 
                 },
+              ),
+              ExpansionTile(
+                leading: Image.asset(
+                  "assets/icons/home.png",
+                  color: Colors.black,
+                  height: 20,
+                ),
+                title: Text(
+                  "Report",
+                  style: TextStyle(color: Colors.black),
+                ),
+                children: <Widget>[
+                  DrawerListTile(
+                    title: "Income",
+                    svgSrc: "assets/icons/department.png",
+                    press: () {
+                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => IncomeScreen()));
+
+                    },
+                  ),
+                  DrawerListTile(
+                    title: "Revenue",
+                    svgSrc: "assets/icons/school.png",
+                    press: () {
+                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => BusFeeScreen()));
+
+                    },
+                  ),
+                  DrawerListTile(
+                    title: "Expenses",
+                    svgSrc: "assets/icons/department.png",
+                    press: () {
+                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => ActivityFeeScreen()));
+
+                    },
+                  ),
+                  DrawerListTile(
+                    title: "Uniform Fees",
+                    svgSrc: "assets/icons/department.png",
+                    press: () {
+                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => UniformFeeScreen()));
+
+                    },
+                  ),
+
+                ],
               ),
               DrawerListTile(
                 title: "Places",

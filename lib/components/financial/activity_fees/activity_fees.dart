@@ -69,6 +69,8 @@ class _ActivityFeesState extends State<ActivityFees> {
             'discount': "",
             'discountId': "",
             'feeCategoryId': "",
+            'classId':stdModel.classId,
+            'className':stdModel.className,
             'feeCategory': "Activity Fees",
             'fees': int.parse(feesController.text),
             'academicYear': "2022",
