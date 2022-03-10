@@ -3,8 +3,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class UniformDeliveryModel{
   String id,student,studentId,payment,status;
   bool isArchived;
-  List item;
-  int datePosted;
+  List item,quantities,variants;
+  int datePosted,amount;
+
 
 
 
@@ -12,6 +13,9 @@ class UniformDeliveryModel{
       : id=key,
         student = map['student'],
         studentId = map['studentId'],
+        amount = map['amount']??0,
+        variants = map['variants']??[],
+        quantities = map['quantities']??[],
         item = map['item'],
         payment = map['payment'],
         status = map['status'],

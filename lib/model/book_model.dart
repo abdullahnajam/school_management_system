@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class BookModel{
-  String id,name,code,subject,subjectID,rentOrOwn;
+  String id,name,code,subject,subjectID,rentOrOwn,edition,supplier,supplierId;
   int stock,cost;
   bool isArchived;
   int datePosted;
@@ -17,6 +17,9 @@ class BookModel{
         rentOrOwn = map['rentOrOwn'],
         stock = map['stock'],
         cost = map['cost'],
+        supplier = map['supplier'],
+        supplierId = map['supplierId'],
+        edition = map['edition'],
         isArchived = map['isArchived'],
         datePosted = map['datePosted'];
 

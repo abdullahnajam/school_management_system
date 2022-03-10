@@ -26,10 +26,13 @@ class _SchoolClassesState extends State<SchoolClasses> {
   var schoolController=TextEditingController();
   var departmentController=TextEditingController();
   var gradeController=TextEditingController();
+  var categoryController=TextEditingController();
+  var placeController=TextEditingController();
   var maxController=TextEditingController();
   var minController=TextEditingController();
 
-  add(String schoolId,departmentId,gradeId) async{
+
+  add(String schoolId,departmentId,gradeId,placeId) async{
     print("rr");
     final ProgressDialog pr = ProgressDialog(context: context);
     pr.show(max: 100, msg: "Adding");
@@ -38,10 +41,13 @@ class _SchoolClassesState extends State<SchoolClasses> {
       'school': schoolController.text,
       'department': departmentController.text,
       'grade': gradeController.text,
+      'place': placeController.text,
+      'placeId': placeId,
       'maxCapacity': int.parse(maxController.text.trim()),
       'minCapacity': int.parse(minController.text.trim()),
       'schoolId': schoolId,
       'gradeId': gradeId,
+
       'departmentId': departmentId,
       'isArchived': false,
       'datePosted': DateTime.now().millisecondsSinceEpoch,
@@ -53,7 +59,7 @@ class _SchoolClassesState extends State<SchoolClasses> {
   }
 
   Future<void> _showAddDialog() async {
-    String schoolId="",departmentId="",gradeId="";
+    String schoolId="",departmentId="",gradeId="",placeId="";
     final _formKey = GlobalKey<FormState>();
     return showDialog<void>(
       context: context,
@@ -442,7 +448,7 @@ class _SchoolClassesState extends State<SchoolClasses> {
                                             width: MediaQuery.of(context).size.width*0.3,
                                             child: StreamBuilder<QuerySnapshot>(
                                               stream: FirebaseFirestore.instance.collection('grades')
-                                                  .where('grade',isEqualTo:gradeController.text).snapshots(),
+                                                  .where('department',isEqualTo:departmentController.text).snapshots(),
                                               builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
                                                 if (snapshot.hasError) {
                                                   return Center(
@@ -505,6 +511,264 @@ class _SchoolClassesState extends State<SchoolClasses> {
                               );
                             },
                             controller: gradeController,
+                            style: TextStyle(color: Colors.black),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter some text';
+                              }
+                              return null;
+                            },
+                            decoration: InputDecoration(
+                              contentPadding: EdgeInsets.all(15),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(7.0),
+                                borderSide: BorderSide(
+                                  color: primaryColor,
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(7.0),
+                                borderSide: BorderSide(
+                                    color: primaryColor,
+                                    width: 0.5
+                                ),
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(7.0),
+                                borderSide: BorderSide(
+                                  color: primaryColor,
+                                  width: 0.5,
+                                ),
+                              ),
+                              hintText: "",
+                              floatingLabelBehavior: FloatingLabelBehavior.always,
+                            ),
+                          ),
+
+                        ],
+                      ),
+                      SizedBox(height: 10,),
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Place Category",
+                            style: Theme.of(context).textTheme.bodyText1!.apply(color: Colors.black),
+                          ),
+                          TextFormField(
+                            readOnly: true,
+                            onTap: (){
+                              showDialog(
+                                  context: context,
+                                  builder: (BuildContext context){
+                                    return StatefulBuilder(
+                                      builder: (context,setState){
+                                        return Dialog(
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: const BorderRadius.all(
+                                              Radius.circular(10.0),
+                                            ),
+                                          ),
+                                          insetAnimationDuration: const Duration(seconds: 1),
+                                          insetAnimationCurve: Curves.fastOutSlowIn,
+                                          elevation: 2,
+                                          child: Container(
+                                            width: MediaQuery.of(context).size.width*0.3,
+                                            child: StreamBuilder<QuerySnapshot>(
+                                              stream: FirebaseFirestore.instance.collection('place_categories')
+                                                  .where('school',isEqualTo:schoolController.text).snapshots(),
+                                              builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                                                if (snapshot.hasError) {
+                                                  return Center(
+                                                    child: Column(
+                                                      children: [
+                                                        Image.asset("assets/images/wrong.png",width: 150,height: 150,),
+                                                        Text("Something Went Wrong",style: TextStyle(color: Colors.black))
+
+                                                      ],
+                                                    ),
+                                                  );
+                                                }
+
+                                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                                  return Center(
+                                                    child: CircularProgressIndicator(),
+                                                  );
+                                                }
+                                                if (snapshot.data!.size==0){
+                                                  return Center(
+                                                    child: Column(
+                                                      children: [
+                                                        Image.asset("assets/images/empty.png",width: 150,height: 150,),
+                                                        Text("No Categories Added",style: TextStyle(color: Colors.black))
+
+                                                      ],
+                                                    ),
+                                                  );
+
+                                                }
+
+                                                return new ListView(
+                                                  shrinkWrap: true,
+                                                  children: snapshot.data!.docs.map((DocumentSnapshot document) {
+                                                    Map<String, dynamic> data = document.data() as Map<String, dynamic>;
+
+                                                    return new Padding(
+                                                      padding: const EdgeInsets.all(15.0),
+                                                      child: ListTile(
+                                                        onTap: (){
+                                                          setState(() {
+                                                            categoryController.text="${data['name']}";
+                                                          });
+                                                          Navigator.pop(context);
+                                                        },
+
+                                                        title: Text("${data['name']}",style: TextStyle(color: Colors.black),),
+                                                      ),
+                                                    );
+                                                  }).toList(),
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    );
+                                  }
+                              );
+                            },
+                            controller: categoryController,
+                            style: TextStyle(color: Colors.black),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter some text';
+                              }
+                              return null;
+                            },
+                            decoration: InputDecoration(
+                              contentPadding: EdgeInsets.all(15),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(7.0),
+                                borderSide: BorderSide(
+                                  color: primaryColor,
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(7.0),
+                                borderSide: BorderSide(
+                                    color: primaryColor,
+                                    width: 0.5
+                                ),
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(7.0),
+                                borderSide: BorderSide(
+                                  color: primaryColor,
+                                  width: 0.5,
+                                ),
+                              ),
+                              hintText: "",
+                              floatingLabelBehavior: FloatingLabelBehavior.always,
+                            ),
+                          ),
+
+                        ],
+                      ),
+                      SizedBox(height: 10,),
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Place",
+                            style: Theme.of(context).textTheme.bodyText1!.apply(color: Colors.black),
+                          ),
+                          TextFormField(
+                            readOnly: true,
+                            onTap: (){
+                              showDialog(
+                                  context: context,
+                                  builder: (BuildContext context){
+                                    return StatefulBuilder(
+                                      builder: (context,setState){
+                                        return Dialog(
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: const BorderRadius.all(
+                                              Radius.circular(10.0),
+                                            ),
+                                          ),
+                                          insetAnimationDuration: const Duration(seconds: 1),
+                                          insetAnimationCurve: Curves.fastOutSlowIn,
+                                          elevation: 2,
+                                          child: Container(
+                                            width: MediaQuery.of(context).size.width*0.3,
+                                            child: StreamBuilder<QuerySnapshot>(
+                                              stream: FirebaseFirestore.instance.collection('places')
+                                                  .where('department',isEqualTo:departmentController.text)
+                                                  .where('category',isEqualTo:categoryController.text).snapshots(),
+                                              builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                                                if (snapshot.hasError) {
+                                                  return Center(
+                                                    child: Column(
+                                                      children: [
+                                                        Image.asset("assets/images/wrong.png",width: 150,height: 150,),
+                                                        Text("Something Went Wrong",style: TextStyle(color: Colors.black))
+
+                                                      ],
+                                                    ),
+                                                  );
+                                                }
+
+                                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                                  return Center(
+                                                    child: CircularProgressIndicator(),
+                                                  );
+                                                }
+                                                if (snapshot.data!.size==0){
+                                                  return Center(
+                                                    child: Column(
+                                                      children: [
+                                                        Image.asset("assets/images/empty.png",width: 150,height: 150,),
+                                                        Text("No Places Added",style: TextStyle(color: Colors.black))
+
+                                                      ],
+                                                    ),
+                                                  );
+
+                                                }
+
+                                                return new ListView(
+                                                  shrinkWrap: true,
+                                                  children: snapshot.data!.docs.map((DocumentSnapshot document) {
+                                                    Map<String, dynamic> data = document.data() as Map<String, dynamic>;
+
+                                                    return new Padding(
+                                                      padding: const EdgeInsets.all(15.0),
+                                                      child: ListTile(
+                                                        onTap: (){
+                                                          setState(() {
+                                                            placeController.text="${data['name']}";
+                                                            placeId=document.reference.id;
+                                                          });
+                                                          Navigator.pop(context);
+                                                        },
+
+                                                        title: Text("${data['name']}",style: TextStyle(color: Colors.black),),
+                                                      ),
+                                                    );
+                                                  }).toList(),
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    );
+                                  }
+                              );
+                            },
+                            controller: placeController,
                             style: TextStyle(color: Colors.black),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
@@ -639,7 +903,10 @@ class _SchoolClassesState extends State<SchoolClasses> {
                       InkWell(
                         onTap: (){
                           print("tap");
-                          add(schoolId,departmentId,gradeId);
+                          if (_formKey.currentState!.validate()) {
+                            add(schoolId,departmentId,gradeId,placeId);
+                          }
+
                         },
                         child: Container(
                           height: 50,

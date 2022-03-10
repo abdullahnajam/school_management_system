@@ -5,15 +5,20 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:data_table_2/data_table_2.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
+import 'package:school_management_system/model/uniform/uniform_item_model.dart';
 import 'package:school_management_system/model/book_model.dart';
 import 'package:school_management_system/model/department_model.dart';
-import 'package:school_management_system/model/uniform/uniform_Item_model.dart';
+import 'package:school_management_system/model/uniform/uniform_category_model.dart';
+import 'package:school_management_system/screens/uniform/uniform_edit_item_screen.dart';
 import 'package:school_management_system/screens/uniform/uniform_items_screen.dart';
+import 'package:school_management_system/screens/uniform/uniform_variation_screen.dart';
 import 'package:school_management_system/utils/constants.dart';
 import 'package:sn_progress_dialog/progress_dialog.dart';
 import 'package:firebase/firebase.dart' as fb;
 class UniformItemList extends StatefulWidget {
-  const UniformItemList({Key? key}) : super(key: key);
+  List<String> categories=[];
+
+  UniformItemList(this.categories);
 
   @override
   _UniformItemListState createState() => _UniformItemListState();
@@ -22,8 +27,21 @@ class UniformItemList extends StatefulWidget {
 
 class _UniformItemListState extends State<UniformItemList> {
 
+  String selectedCategory="All Categories";
 
-
+  Future<List<String>> getCategories()async{
+    List<String> list=[];
+    list.add("All Categories");
+    await FirebaseFirestore.instance.collection('uniform_categories').get().then((QuerySnapshot querySnapshot) {
+      querySnapshot.docs.forEach((doc) {
+        Map<String, dynamic> data = doc.data()! as Map<String, dynamic>;
+        setState(() {
+          list.add(UniformCategoryModel.fromMap(data, doc.reference.id).name);
+        });
+      });
+    });
+    return list;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,754 +58,377 @@ class _UniformItemListState extends State<UniformItemList> {
             "Items",
             style: Theme.of(context).textTheme.subtitle1,
           ),
-          StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance.collection('uniform_items').snapshots(),
-            builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-              if (snapshot.hasError) {
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Lottie.asset('assets/json/empty.json',height: 100,width: 120),
-                    Text('Something went wrong'),
-                  ],
-                );
-              }
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Container(
-                  margin: EdgeInsets.all(30),
-                  alignment: Alignment.center,
-                  child: CircularProgressIndicator(),
-                );
-              }
-              if (snapshot.data!.size==0){
-                return Container(
-                  width: double.infinity,
-                  margin: EdgeInsets.all(20),
-                  padding: EdgeInsets.all(80),
-                  alignment: Alignment.center,
-                  child: Column(
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Expanded(flex: 7,child: Container(),),
+
+              Expanded(
+                  flex: 3,
+                  child:  Container(
+                    padding: EdgeInsets.only(left: 10),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(7.0),
+                      border: Border.all(
+                        color: primaryColor,
+                      ),
+                    ),
+                    child: DropdownButton<String>(
+                      value: selectedCategory,
+                      icon: const Icon(Icons.keyboard_arrow_down),
+                      isExpanded: true,
+                      elevation: 16,
+                      style: const TextStyle(color: Colors.black),
+                      underline: Container(),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          selectedCategory = newValue!;
+                          /*filteredCategories.forEach((element) {
+                                      if(element!=newValue && element!="All Categories")
+                                        filteredCategories.remove(element);
+                                    });*/
+                        });
+                      },
+                      items: widget.categories.map<DropdownMenuItem<String>>(
+                              (String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value),
+                            );
+                          }).toList(),
+                    ),
+                  )
+              ),
+
+            ],
+          ),
+          if(selectedCategory=="All Categories")
+            StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance.collection('uniform_items').snapshots(),
+              builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                if (snapshot.hasError) {
+                  return Column(
                     mainAxisSize: MainAxisSize.min,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Lottie.asset('assets/json/empty.json',height: 100,width: 120),
-                      Text('No items are added'),
+                      Text('Something went wrong'),
                     ],
+                  );
+                }
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Container(
+                    margin: EdgeInsets.all(30),
+                    alignment: Alignment.center,
+                    child: CircularProgressIndicator(),
+                  );
+                }
+                if (snapshot.data!.size==0){
+                  return Container(
+                    width: double.infinity,
+                    margin: EdgeInsets.all(20),
+                    padding: EdgeInsets.all(80),
+                    alignment: Alignment.center,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Lottie.asset('assets/json/empty.json',height: 100,width: 120),
+                        Text('No items are added'),
+                      ],
+                    ),
+                  );
+                }
+                print("size ${snapshot.data!.size}");
+                return new SizedBox(
+                  width: double.infinity,
+                  child: DataTable2(
+
+                      showCheckboxColumn: false,
+                      columnSpacing: defaultPadding,
+                      minWidth: 600,
+                      columns: [
+
+                        DataColumn(
+                          label: Text("Name"),
+                        ),
+                        DataColumn(
+                          label: Text("Thumbnail"),
+                        ),
+                        DataColumn(
+                          label: Text("Code"),
+                        ),
+
+                        DataColumn(
+                          label: Text("Category"),
+                        ),
+                        DataColumn(
+                          label: Text("Price"),
+                        ),
+                        DataColumn(
+                          label: Text("Quantity Stock"),
+                        ),
+                        DataColumn(
+                          label: Text("SKU"),
+                        ),
+                        DataColumn(
+                          label: Text("Low"),
+                        ),
+                        DataColumn(
+                          label: Text("Variants"),
+                        ),
+                        DataColumn(
+                          label: Text("Gallery"),
+                        ),
+
+
+                        DataColumn(
+                          label: Text("Actions"),
+                        ),
+
+
+                      ],
+                      rows: _buildList(context, snapshot.data!.docs)
+
                   ),
                 );
-              }
-              print("size ${snapshot.data!.size}");
-              return new SizedBox(
-                width: double.infinity,
-                child: DataTable2(
+              },
+            )
+          else
+            StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance.collection('uniform_items').where("category",isEqualTo: selectedCategory).snapshots(),
+              builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                if (snapshot.hasError) {
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Lottie.asset('assets/json/empty.json',height: 100,width: 120),
+                      Text('Something went wrong'),
+                    ],
+                  );
+                }
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Container(
+                    margin: EdgeInsets.all(30),
+                    alignment: Alignment.center,
+                    child: CircularProgressIndicator(),
+                  );
+                }
+                if (snapshot.data!.size==0){
+                  return Container(
+                    width: double.infinity,
+                    margin: EdgeInsets.all(20),
+                    padding: EdgeInsets.all(80),
+                    alignment: Alignment.center,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Lottie.asset('assets/json/empty.json',height: 100,width: 120),
+                        Text('No items are added'),
+                      ],
+                    ),
+                  );
+                }
+                print("size ${snapshot.data!.size}");
+                return new SizedBox(
+                  width: double.infinity,
+                  child: DataTable2(
 
-                    showCheckboxColumn: false,
-                  columnSpacing: defaultPadding,
-                  minWidth: 600,
-                  columns: [
+                      showCheckboxColumn: false,
+                      columnSpacing: defaultPadding,
+                      minWidth: 600,
+                      columns: [
 
-                    DataColumn(
-                      label: Text("Name"),
-                    ),
-                    DataColumn(
-                      label: Text("Code"),
-                    ),
-                    DataColumn(
-                      label: Text("Variation"),
-                    ),
-                    DataColumn(
-                      label: Text("Category"),
-                    ),
-                    DataColumn(
-                      label: Text("Price"),
-                    ),
-                    DataColumn(
-                      label: Text("Stock"),
-                    ),
-                    DataColumn(
-                      label: Text("SKU"),
-                    ),
+                        DataColumn(
+                          label: Text("Name"),
+                        ),
+                        DataColumn(
+                          label: Text("Thumbnail"),
+                        ),
+                        DataColumn(
+                          label: Text("Code"),
+                        ),
+
+                        DataColumn(
+                          label: Text("Category"),
+                        ),
+                        DataColumn(
+                          label: Text("Price"),
+                        ),
+                        DataColumn(
+                          label: Text("Quantity Stock"),
+                        ),
+                        DataColumn(
+                          label: Text("SKU"),
+                        ),
+                        DataColumn(
+                          label: Text("Low"),
+                        ),
+                        DataColumn(
+                          label: Text("Variants"),
+                        ),
+                        DataColumn(
+                          label: Text("Gallery"),
+                        ),
 
 
-                    DataColumn(
-                      label: Text("Actions"),
-                    ),
+                        DataColumn(
+                          label: Text("Actions"),
+                        ),
 
 
-                  ],
-                  rows: _buildList(context, snapshot.data!.docs)
+                      ],
+                      rows: _buildList(context, snapshot.data!.docs)
 
-                ),
-              );
-            },
-          ),
+                  ),
+                );
+              },
+            ),
+
 
 
         ],
       ),
     );
   }
-}
-List<DataRow> _buildList(BuildContext context, List<DocumentSnapshot> snapshot) {
-  return  snapshot.map((data) => _buildListItem(context, data)).toList();
-}
-var _nameController=TextEditingController();
-var _codeController=TextEditingController();
-var _categoryController=TextEditingController();
-var _variationController=TextEditingController();
-var _priceController=TextEditingController();
-var _stockController=TextEditingController();
-var _skuController=TextEditingController();
-Future<void> _showEdit(BuildContext context,UniformItemModel model) async {
-  String _categoryId=model.categoryId;
-  String _variationId=model.variationId;
-  return showDialog<void>(
-    context: context,
-    barrierDismissible: true, // user must tap button!
-    builder: (BuildContext context) {
-      return StatefulBuilder(
-        builder: (context, setState) {
-          final _formKey = GlobalKey<FormState>();
+  List<DataRow> _buildList(BuildContext context, List<DocumentSnapshot> snapshot) {
+    return  snapshot.map((data) => _buildListItem(context, data)).toList();
+  }
 
-          _nameController.text=model.name;
-          _categoryController.text=model.category.toString();
-          _priceController.text=model.price.toString();
-          _stockController.text=model.stock.toString();
-          _skuController.text=model.sku.toString();
-          _variationController.text=model.variation;
+  DataRow _buildListItem(BuildContext context, DocumentSnapshot data) {
+    UniformItemModel model = UniformItemModel.fromSnapshot(data);
+    return DataRow(
+        cells: [
+          DataCell(Text(model.name)),
+          DataCell(Image.network(model.image,height: 50,width: 50,)),
+          DataCell(Text(model.code)),
+          DataCell(Text(model.category)),
+          DataCell(Text(model.price.toString())),
+          DataCell(Text(model.stock.toString())),
+          DataCell(Text(model.sku.toString())),
+          DataCell(Text(model.lowStockQuantity.toString())),
 
+          DataCell(Text("View"),
+              onTap: (){
+                Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) => UniformVariationScreen(model.id)));
 
+              }),
+          DataCell(Text("View"),
 
-
-
-          return Dialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: const BorderRadius.all(
-                Radius.circular(10.0),
-              ),
-            ),
-            insetAnimationDuration: const Duration(seconds: 1),
-            insetAnimationCurve: Curves.fastOutSlowIn,
-            elevation: 2,
-
-            child: Container(
-              padding: EdgeInsets.all(20),
-              height: MediaQuery.of(context).size.height*0.9,
-              width: MediaQuery.of(context).size.width*0.5,
-              decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10)
-              ),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Stack(
-                      children: [
-                        Align(
-                          alignment: Alignment.center,
-                          child: Container(
-                            margin: EdgeInsets.all(10),
-                            child: Text("Edit Item",textAlign: TextAlign.center,style: Theme.of(context).textTheme.headline5!.apply(color: Colors.black),),
-                          ),
-                        ),
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: Container(
-                            margin: EdgeInsets.all(10),
-                            child: IconButton(
-                              icon: Icon(Icons.close,color: Colors.grey,),
-                              onPressed: ()=>Navigator.pop(context),
-                            ),
-                          ),
-                        )
-                      ],
-                    ),
-
-                    Expanded(
-                      child: ListView(
-                        children: [
-                          Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Name",
-                                style: Theme.of(context).textTheme.bodyText1!.apply(color: Colors.black),
-                              ),
-                              TextFormField(
-                                controller: _nameController,
-                                style: TextStyle(color: Colors.black),
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Please enter some text';
-                                  }
-                                  return null;
-                                },
-                                decoration: InputDecoration(
-                                  contentPadding: EdgeInsets.all(15),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(7.0),
-                                    borderSide: BorderSide(
-                                      color: primaryColor,
-                                    ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(7.0),
-                                    borderSide: BorderSide(
-                                        color: primaryColor,
-                                        width: 0.5
-                                    ),
-                                  ),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(7.0),
-                                    borderSide: BorderSide(
-                                      color: primaryColor,
-                                      width: 0.5,
-                                    ),
-                                  ),
-                                  hintText: "",
-                                  floatingLabelBehavior: FloatingLabelBehavior.always,
-                                ),
-                              ),
-
-                            ],
-                          ),
-                          SizedBox(height: 10,),
-                          Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Code",
-                                style: Theme.of(context).textTheme.bodyText1!.apply(color: Colors.black),
-                              ),
-                              TextFormField(
-                                controller: _codeController,
-                                style: TextStyle(color: Colors.black),
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Please enter some text';
-                                  }
-                                  return null;
-                                },
-                                decoration: InputDecoration(
-                                  contentPadding: EdgeInsets.all(15),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(7.0),
-                                    borderSide: BorderSide(
-                                      color: primaryColor,
-                                    ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(7.0),
-                                    borderSide: BorderSide(
-                                        color: primaryColor,
-                                        width: 0.5
-                                    ),
-                                  ),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(7.0),
-                                    borderSide: BorderSide(
-                                      color: primaryColor,
-                                      width: 0.5,
-                                    ),
-                                  ),
-                                  hintText: "",
-                                  floatingLabelBehavior: FloatingLabelBehavior.always,
-                                ),
-                              ),
-
-                            ],
-                          ),
-                          SizedBox(height: 10,),
-                          Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Price",
-                                style: Theme.of(context).textTheme.bodyText1!.apply(color: Colors.black),
-                              ),
-                              TextFormField(
-                                controller: _priceController,
-                                style: TextStyle(color: Colors.black),
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Please enter some text';
-                                  }
-                                  return null;
-                                },
-                                decoration: InputDecoration(
-                                  contentPadding: EdgeInsets.all(15),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(7.0),
-                                    borderSide: BorderSide(
-                                      color: primaryColor,
-                                    ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(7.0),
-                                    borderSide: BorderSide(
-                                        color: primaryColor,
-                                        width: 0.5
-                                    ),
-                                  ),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(7.0),
-                                    borderSide: BorderSide(
-                                      color: primaryColor,
-                                      width: 0.5,
-                                    ),
-                                  ),
-                                  hintText: "",
-                                  floatingLabelBehavior: FloatingLabelBehavior.always,
-                                ),
-                              ),
-
-                            ],
-                          ),
-                          SizedBox(height: 10,),
-                          Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Stock",
-                                style: Theme.of(context).textTheme.bodyText1!.apply(color: Colors.black),
-                              ),
-                              TextFormField(
-                                controller: _stockController,
-                                style: TextStyle(color: Colors.black),
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Please enter some text';
-                                  }
-                                  return null;
-                                },
-                                decoration: InputDecoration(
-                                  contentPadding: EdgeInsets.all(15),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(7.0),
-                                    borderSide: BorderSide(
-                                      color: primaryColor,
-                                    ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(7.0),
-                                    borderSide: BorderSide(
-                                        color: primaryColor,
-                                        width: 0.5
-                                    ),
-                                  ),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(7.0),
-                                    borderSide: BorderSide(
-                                      color: primaryColor,
-                                      width: 0.5,
-                                    ),
-                                  ),
-                                  hintText: "",
-                                  floatingLabelBehavior: FloatingLabelBehavior.always,
-                                ),
-                              ),
-
-                            ],
-                          ),
-                          SizedBox(height: 10,),
-                          Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "SKU",
-                                style: Theme.of(context).textTheme.bodyText1!.apply(color: Colors.black),
-                              ),
-                              TextFormField(
-                                controller: _skuController,
-                                style: TextStyle(color: Colors.black),
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Please enter some text';
-                                  }
-                                  return null;
-                                },
-                                decoration: InputDecoration(
-                                  contentPadding: EdgeInsets.all(15),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(7.0),
-                                    borderSide: BorderSide(
-                                      color: primaryColor,
-                                    ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(7.0),
-                                    borderSide: BorderSide(
-                                        color: primaryColor,
-                                        width: 0.5
-                                    ),
-                                  ),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(7.0),
-                                    borderSide: BorderSide(
-                                      color: primaryColor,
-                                      width: 0.5,
-                                    ),
-                                  ),
-                                  hintText: "",
-                                  floatingLabelBehavior: FloatingLabelBehavior.always,
-                                ),
-                              ),
-
-                            ],
-                          ),
-                          SizedBox(height: 10,),
-                          Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Category",
-                                style: Theme.of(context).textTheme.bodyText1!.apply(color: Colors.black),
-                              ),
-                              TextFormField(
-                                readOnly: true,
-                                onTap: (){
-                                  showDialog(
-                                      context: context,
-                                      builder: (BuildContext context){
-                                        return StatefulBuilder(
-                                          builder: (context,setState){
-                                            return Dialog(
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: const BorderRadius.all(
-                                                  Radius.circular(10.0),
-                                                ),
-                                              ),
-                                              insetAnimationDuration: const Duration(seconds: 1),
-                                              insetAnimationCurve: Curves.fastOutSlowIn,
-                                              elevation: 2,
-                                              child: Container(
-                                                width: MediaQuery.of(context).size.width*0.3,
-                                                child: StreamBuilder<QuerySnapshot>(
-                                                  stream: FirebaseFirestore.instance.collection('uniform_categories').snapshots(),
-                                                  builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                                                    if (snapshot.hasError) {
-                                                      return Center(
-                                                        child: Column(
-                                                          children: [
-                                                            Image.asset("assets/images/wrong.png",width: 150,height: 150,),
-                                                            Text("Something Went Wrong",style: TextStyle(color: Colors.black))
-
-                                                          ],
-                                                        ),
-                                                      );
-                                                    }
-
-                                                    if (snapshot.connectionState == ConnectionState.waiting) {
-                                                      return Center(
-                                                        child: CircularProgressIndicator(),
-                                                      );
-                                                    }
-                                                    if (snapshot.data!.size==0){
-                                                      return Center(
-                                                        child: Column(
-                                                          children: [
-                                                            Image.asset("assets/images/empty.png",width: 150,height: 150,),
-                                                            Text("No Category Added",style: TextStyle(color: Colors.black))
-
-                                                          ],
-                                                        ),
-                                                      );
-
-                                                    }
-
-                                                    return new ListView(
-                                                      shrinkWrap: true,
-                                                      children: snapshot.data!.docs.map((DocumentSnapshot document) {
-                                                        Map<String, dynamic> data = document.data() as Map<String, dynamic>;
-
-                                                        return new Padding(
-                                                          padding: const EdgeInsets.all(15.0),
-                                                          child: ListTile(
-                                                            onTap: (){
-                                                              setState(() {
-                                                                _categoryController.text="${data['name']}";
-                                                                _categoryId=document.reference.id;
-                                                              });
-                                                              Navigator.pop(context);
-                                                            },
-                                                            title: Text("${data['name']}",style: TextStyle(color: Colors.black),),
-                                                          ),
-                                                        );
-                                                      }).toList(),
-                                                    );
-                                                  },
-                                                ),
-                                              ),
-                                            );
-                                          },
-                                        );
-                                      }
-                                  );
-                                },
-                                controller: _categoryController,
-                                style: TextStyle(color: Colors.black),
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Please enter some text';
-                                  }
-                                  return null;
-                                },
-                                decoration: InputDecoration(
-                                  contentPadding: EdgeInsets.all(15),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(7.0),
-                                    borderSide: BorderSide(
-                                      color: primaryColor,
-                                    ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(7.0),
-                                    borderSide: BorderSide(
-                                        color: primaryColor,
-                                        width: 0.5
-                                    ),
-                                  ),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(7.0),
-                                    borderSide: BorderSide(
-                                      color: primaryColor,
-                                      width: 0.5,
-                                    ),
-                                  ),
-                                  hintText: "",
-                                  floatingLabelBehavior: FloatingLabelBehavior.always,
-                                ),
-                              ),
-
-                            ],
-                          ),
-                          SizedBox(height: 10,),
-                          Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Variation",
-                                style: Theme.of(context).textTheme.bodyText1!.apply(color: Colors.black),
-                              ),
-                              TextFormField(
-                                readOnly: true,
-                                onTap: (){
-                                  showDialog(
-                                      context: context,
-                                      builder: (BuildContext context){
-                                        return StatefulBuilder(
-                                          builder: (context,setState){
-                                            return Dialog(
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: const BorderRadius.all(
-                                                  Radius.circular(10.0),
-                                                ),
-                                              ),
-                                              insetAnimationDuration: const Duration(seconds: 1),
-                                              insetAnimationCurve: Curves.fastOutSlowIn,
-                                              elevation: 2,
-                                              child: Container(
-                                                width: MediaQuery.of(context).size.width*0.3,
-                                                child: StreamBuilder<QuerySnapshot>(
-                                                  stream: FirebaseFirestore.instance.collection('uniform_variations').snapshots(),
-                                                  builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                                                    if (snapshot.hasError) {
-                                                      return Center(
-                                                        child: Column(
-                                                          children: [
-                                                            Image.asset("assets/images/wrong.png",width: 150,height: 150,),
-                                                            Text("Something Went Wrong",style: TextStyle(color: Colors.black))
-
-                                                          ],
-                                                        ),
-                                                      );
-                                                    }
-
-                                                    if (snapshot.connectionState == ConnectionState.waiting) {
-                                                      return Center(
-                                                        child: CircularProgressIndicator(),
-                                                      );
-                                                    }
-                                                    if (snapshot.data!.size==0){
-                                                      return Center(
-                                                        child: Column(
-                                                          children: [
-                                                            Image.asset("assets/images/empty.png",width: 150,height: 150,),
-                                                            Text("No Variation Added",style: TextStyle(color: Colors.black))
-
-                                                          ],
-                                                        ),
-                                                      );
-
-                                                    }
-
-                                                    return new ListView(
-                                                      shrinkWrap: true,
-                                                      children: snapshot.data!.docs.map((DocumentSnapshot document) {
-                                                        Map<String, dynamic> data = document.data() as Map<String, dynamic>;
-
-                                                        return new Padding(
-                                                          padding: const EdgeInsets.all(15.0),
-                                                          child: ListTile(
-                                                            onTap: (){
-                                                              setState(() {
-                                                                _variationController.text="${data['name']}";
-                                                                _variationId=document.reference.id;
-                                                              });
-                                                              Navigator.pop(context);
-                                                            },
-                                                            title: Text("${data['name']}",style: TextStyle(color: Colors.black),),
-                                                          ),
-                                                        );
-                                                      }).toList(),
-                                                    );
-                                                  },
-                                                ),
-                                              ),
-                                            );
-                                          },
-                                        );
-                                      }
-                                  );
-                                },
-                                controller: _variationController,
-                                style: TextStyle(color: Colors.black),
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Please enter some text';
-                                  }
-                                  return null;
-                                },
-                                decoration: InputDecoration(
-                                  contentPadding: EdgeInsets.all(15),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(7.0),
-                                    borderSide: BorderSide(
-                                      color: primaryColor,
-                                    ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(7.0),
-                                    borderSide: BorderSide(
-                                        color: primaryColor,
-                                        width: 0.5
-                                    ),
-                                  ),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(7.0),
-                                    borderSide: BorderSide(
-                                      color: primaryColor,
-                                      width: 0.5,
-                                    ),
-                                  ),
-                                  hintText: "",
-                                  floatingLabelBehavior: FloatingLabelBehavior.always,
-                                ),
-                              ),
-
-                            ],
-                          ),
-
-
-
-
-                          SizedBox(height: 15,),
-                          InkWell(
-                            onTap: (){
-                              final ProgressDialog pr = ProgressDialog(context: context);
-                              pr.show(max: 100, msg: "Adding");
-                              FirebaseFirestore.instance.collection('uniform_items').doc(model.id).update({
-                                'name': _nameController.text,
-                                'variation': _variationController.text,
-                                'price': int.parse(_priceController.text),
-                                'stock': int.parse(_stockController.text),
-                                'sku': int.parse(_skuController.text),
-                                'category': _categoryController.text,
-                                'code': _codeController.text,
-                                'variationId': _variationId,
-                                'categoryId': _categoryId,
-                              }).then((value) {
-                                pr.close();
-                                print("added");
-                                Navigator.pop(context);
-                              });
-                            },
-                            child: Container(
-                              height: 50,
-                              color: Colors.black,
-                              alignment: Alignment.center,
-                              child: Text("Update Item",style: Theme.of(context).textTheme.button!.apply(color: Colors.white),),
-                            ),
-                          )
-                        ],
-                      ),
-                    )
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
-      );
-    },
-  );
-}
-
-DataRow _buildListItem(BuildContext context, DocumentSnapshot data) {
-  final model = UniformItemModel.fromSnapshot(data);
-  return DataRow(
-      cells: [
-    DataCell(Text(model.name)),
-        DataCell(Text(model.code)),
-        DataCell(Text(model.variation,maxLines: 1,)),
-        DataCell(Text(model.category)),
-        DataCell(Text(model.price.toString())),
-        DataCell(Text(model.stock.toString())),
-        DataCell(Text(model.sku.toString())),
-        DataCell(Row(
-          children: [
-            IconButton(
-              icon: Icon(Icons.delete_forever),
-              color: primaryColor,
-              onPressed: (){
-                AwesomeDialog(
-                  dialogBackgroundColor: Colors.white,
-                  width: MediaQuery.of(context).size.width*0.3,
+              onTap: (){
+                showDialog<void>(
                   context: context,
-                  dialogType: DialogType.QUESTION,
-                  animType: AnimType.BOTTOMSLIDE,
-                  title: 'Delete Item',
-                  desc: 'Are you sure you want to delete this record?',
-                  btnCancelOnPress: () {
-                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => UniformItemsScreen()));
-                  },
-                  btnOkOnPress: () {
-                    FirebaseFirestore.instance.collection('uniform_items').doc(model.id).delete().then((value) =>
-                        Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => UniformItemsScreen())));
-                  },
-                )..show();
-              },
-            ),
-            IconButton(
-              icon: Icon(Icons.edit),
-              color: primaryColor,
-              onPressed: (){
-                _showEdit(context,model);
-              },
-            ),
-          ],
-        )),
+                  barrierDismissible: true, // user must tap button!
+                  builder: (BuildContext context) {
+                    return StatefulBuilder(
+                      builder: (context, setState) {
 
-  ]);
+
+
+
+                        return Dialog(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(10.0),
+                            ),
+                          ),
+                          insetAnimationDuration: const Duration(seconds: 1),
+                          insetAnimationCurve: Curves.fastOutSlowIn,
+                          elevation: 2,
+
+                          child: Container(
+                            padding: EdgeInsets.all(20),
+                            //height: MediaQuery.of(context).size.height*0.8,
+                            width: MediaQuery.of(context).size.width*0.5,
+                            decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(10)
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Stack(
+                                  children: [
+                                    Align(
+                                      alignment: Alignment.center,
+                                      child: Container(
+                                        margin: EdgeInsets.all(10),
+                                        child: Text("Gallery",textAlign: TextAlign.center,style: Theme.of(context).textTheme.headline5!.apply(color: Colors.black),),
+                                      ),
+                                    ),
+                                    Align(
+                                      alignment: Alignment.centerRight,
+                                      child: Container(
+                                        margin: EdgeInsets.all(10),
+                                        child: IconButton(
+                                          icon: Icon(Icons.close,color: Colors.grey,),
+                                          onPressed: ()=>Navigator.pop(context),
+                                        ),
+                                      ),
+                                    )
+                                  ],
+                                ),
+
+                                Expanded(
+                                  child: GridView.builder(
+                                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                        crossAxisCount: 2,
+                                      ),
+                                      itemCount: model.gallery.length,
+                                      itemBuilder: (BuildContext context, int index) {
+                                        return Image.network(model.gallery[index]);
+                                      }
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                );
+              }),
+          DataCell(Row(
+            children: [
+              IconButton(
+                icon: Icon(Icons.delete_forever),
+                color: primaryColor,
+                onPressed: (){
+                  AwesomeDialog(
+                    dialogBackgroundColor: Colors.white,
+                    width: MediaQuery.of(context).size.width*0.3,
+                    context: context,
+                    dialogType: DialogType.QUESTION,
+                    animType: AnimType.BOTTOMSLIDE,
+                    title: 'Delete Item',
+                    desc: 'Are you sure you want to delete this record?',
+                    btnCancelOnPress: () {
+                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => UniformItemsScreen(widget.categories)));
+                    },
+                    btnOkOnPress: () {
+                      FirebaseFirestore.instance.collection('uniform_items').doc(model.id).delete().then((value) =>
+                          Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => UniformItemsScreen(widget.categories))));
+                    },
+                  )..show();
+                },
+              ),
+              IconButton(
+                icon: Icon(Icons.edit),
+                color: primaryColor,
+                onPressed: (){
+                  Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) => UniformEditItemScreen(model)));
+
+                },
+              ),
+            ],
+          )),
+
+        ]);
+  }
 }
+
 
 

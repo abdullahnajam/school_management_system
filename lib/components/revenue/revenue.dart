@@ -57,6 +57,7 @@ class _RevenueState extends State<Revenue> {
     FirebaseFirestore.instance.collection('fees').add({
       'student': _studentController.text,
       'school': _schoolController.text,
+      'itemId': "none",
       'department': _departmentController.text,
       'studentId': _studentId,
       'parentId': _parentId,

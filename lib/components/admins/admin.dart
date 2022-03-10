@@ -5,8 +5,10 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:school_management_system/components/admins/role_sidebar.dart';
 import 'package:school_management_system/components/admins/user_list.dart';
+import 'package:school_management_system/provider/UserDataProvider.dart';
 import 'package:school_management_system/utils/constants.dart';
 import 'package:school_management_system/utils/header.dart';
 import 'package:school_management_system/utils/responsive.dart';
@@ -32,7 +34,7 @@ class _RolesState extends State<Roles> {
   var emailController=TextEditingController();
   var passwordController=TextEditingController();
   var roleController=TextEditingController();
-  register(String id) async{
+  register(String id,bool addAdmin) async{
     print("rr");
     final ProgressDialog pr = ProgressDialog(context: context);
     FirebaseApp app = await Firebase.initializeApp(name: 'Secondary', options: Firebase.app().options);
@@ -48,6 +50,7 @@ class _RolesState extends State<Roles> {
           'status':'Active',
           'role':roleController.text,
           'roleId':id,
+          'addAdmin':addAdmin,
           'email': emailController.text.trim(),
         }).then((value) {
 
@@ -75,7 +78,7 @@ class _RolesState extends State<Roles> {
   }
   Future<void> _showAddDialog() async {
    String roleId="";
-
+   bool addAdmin=false;
     
     final _formKey = GlobalKey<FormState>();
     return showDialog(
@@ -393,13 +396,25 @@ class _RolesState extends State<Roles> {
                               ],
                             ),
 
+                            SizedBox(height: 10,),
+                            CheckboxListTile(
+                              title: const Text('Add Other Admins',style: TextStyle(color: Colors.black),),
+                              value: addAdmin,
+                              onChanged: (bool? value) {
+                                setState(() {
+                                  addAdmin = value!;
+                                });
+                              },
+                              secondary: const Icon(Icons.add,color: Colors.black,),
+                            ),
+
 
                             SizedBox(height: 15,),
                             GestureDetector(
                               onTap: (){
                                 print("ov");
                                 if (_formKey.currentState!.validate()) {
-                                  register(roleId);
+                                  register(roleId,addAdmin);
                                 }
                               },
                               child: Container(
@@ -433,6 +448,7 @@ class _RolesState extends State<Roles> {
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<AdminProvider>(context, listen: false);
     return SafeArea(
       child: SingleChildScrollView(
         padding: EdgeInsets.all(defaultPadding),
@@ -450,8 +466,8 @@ class _RolesState extends State<Roles> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-
-                          ElevatedButton.icon(
+                          if(provider.adminData!.addAdmin)
+                            ElevatedButton.icon(
                             style: TextButton.styleFrom(
                               padding: EdgeInsets.symmetric(
                                 horizontal: defaultPadding * 1.5,
@@ -473,13 +489,13 @@ class _RolesState extends State<Roles> {
                       RoleList(),
                       if (Responsive.isMobile(context))
                         SizedBox(height: defaultPadding),
-                      if (Responsive.isMobile(context)) RoleSidebar(),
+                      if (Responsive.isMobile(context) && provider.adminData!.addAdmin) RoleSidebar(),
                     ],
                   ),
                 ),
                 if (!Responsive.isMobile(context))
                   SizedBox(width: defaultPadding),
-                if (!Responsive.isMobile(context))
+                if (!Responsive.isMobile(context) && provider.adminData!.addAdmin)
                   Expanded(
                     flex: 2,
                     child: RoleSidebar(),

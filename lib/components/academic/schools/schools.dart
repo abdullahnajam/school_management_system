@@ -3,7 +3,10 @@ import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:school_management_system/components/academic/schools/schools_list.dart';
+import 'package:school_management_system/model/admin_model.dart';
+import 'package:school_management_system/provider/UserDataProvider.dart';
 import 'package:school_management_system/utils/constants.dart';
 import 'package:school_management_system/utils/header.dart';
 import 'package:school_management_system/utils/responsive.dart';
@@ -318,7 +321,10 @@ class _SchoolsState extends State<Schools> {
                       InkWell(
                         onTap: (){
                           print("tap");
-                          add(imageUrl);
+
+                          if (_formKey.currentState!.validate()) {
+                            add(imageUrl);
+                          }
                         },
                         child: Container(
                           height: 50,
@@ -396,5 +402,17 @@ class _SchoolsState extends State<Schools> {
         ),
       ),
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    FirebaseFirestore.instance.collection('admins').doc(FirebaseAuth.instance.currentUser!.uid).get().then((DocumentSnapshot documentSnapshot) {
+      if (documentSnapshot.exists) {
+        Map<String, dynamic> data = documentSnapshot.data() as Map<String, dynamic>;
+        final provider = Provider.of<AdminProvider>(context, listen: false);
+        provider.setUserData(AdminModel.fromMap(data, documentSnapshot.reference.id));
+      }
+    });
   }
 }

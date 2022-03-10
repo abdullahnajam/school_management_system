@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:school_management_system/components/uniform_center/uniform_items/uniform_item_list.dart';
+import 'package:school_management_system/screens/uniform/uniform_add_item_screen.dart';
 import 'package:school_management_system/utils/constants.dart';
 import 'package:school_management_system/utils/header.dart';
 import 'package:school_management_system/utils/responsive.dart';
@@ -15,8 +16,11 @@ import 'package:firebase/firebase.dart' as fb;
 class UniformItem extends StatefulWidget {
 
   GlobalKey<ScaffoldState> _scaffoldKey;
+  List<String> categories;
 
-  UniformItem(this._scaffoldKey);
+
+
+  UniformItem(this._scaffoldKey,this.categories);
 
   @override
   _UniformItemState createState() => _UniformItemState();
@@ -661,7 +665,7 @@ class _UniformItemState extends State<UniformItem> {
                               ),
                             ),
                             onPressed: () {
-                              _showAddDialog();
+                              Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => UniformAddItemScreen()));
                             },
                             icon: Icon(Icons.add),
                             label: Text("Add Item"),
@@ -670,7 +674,7 @@ class _UniformItemState extends State<UniformItem> {
                       ),
 
                       SizedBox(height: defaultPadding),
-                      UniformItemList(),
+                      UniformItemList(widget.categories),
                       if (Responsive.isMobile(context))
                         SizedBox(height: defaultPadding),
                     ],

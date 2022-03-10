@@ -2,6 +2,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:school_management_system/components/student/student_popup.dart';
+import 'package:school_management_system/components/uniform_center/uniform_attributes/uniform_attribute.dart';
+import 'package:school_management_system/model/uniform/uniform_category_model.dart';
 import 'package:school_management_system/screens/academic/class_screen.dart';
 import 'package:school_management_system/screens/academic/department_screen.dart';
 import 'package:school_management_system/screens/academic/grade_screen.dart';
@@ -12,6 +15,7 @@ import 'package:school_management_system/screens/activity_screen.dart';
 import 'package:school_management_system/screens/admin_screen.dart';
 import 'package:school_management_system/screens/books/book_delivery_screen.dart';
 import 'package:school_management_system/screens/books/book_screen.dart';
+import 'package:school_management_system/screens/books/book_supplier_screen.dart';
 import 'package:school_management_system/screens/bus/bus_coordinator_screen.dart';
 import 'package:school_management_system/screens/bus/bus_driver_screen.dart';
 import 'package:school_management_system/screens/bus/bus_line_screen.dart';
@@ -24,6 +28,7 @@ import 'package:school_management_system/screens/financial/activity_fee_screen.d
 import 'package:school_management_system/screens/financial/bus_fee_screen.dart';
 import 'package:school_management_system/screens/financial/school_fee_screen.dart';
 import 'package:school_management_system/screens/financial/uniform_fee_screen.dart';
+import 'package:school_management_system/screens/parent_screen.dart';
 import 'package:school_management_system/screens/places/place_screen.dart';
 import 'package:school_management_system/screens/reports/income/income_screen.dart';
 import 'package:school_management_system/screens/revenue_screen.dart';
@@ -38,12 +43,15 @@ import 'package:school_management_system/screens/supply/supply_variation_screen.
 import 'package:school_management_system/screens/teacher_screen.dart';
 import 'package:school_management_system/screens/transfer_screen.dart';
 import 'package:school_management_system/screens/uniform/uniform_Supplier_screen.dart';
+import 'package:school_management_system/screens/uniform/uniform_attribute_screen.dart';
 import 'package:school_management_system/screens/uniform/uniform_category_screen.dart';
 import 'package:school_management_system/screens/uniform/uniform_delivery_screen.dart';
 import 'package:school_management_system/screens/uniform/uniform_items_screen.dart';
+import 'package:school_management_system/screens/uniform/uniform_low_stock_screen.dart';
 import 'package:school_management_system/screens/uniform/uniform_stock_screen.dart';
 import 'package:school_management_system/screens/uniform/uniform_variation_screen.dart';
 import 'package:school_management_system/utils/constants.dart';
+import 'package:sn_progress_dialog/sn_progress_dialog.dart';
 
 class SideMenu extends StatefulWidget {
   const SideMenu({Key? key}) : super(key: key);
@@ -53,26 +61,36 @@ class SideMenu extends StatefulWidget {
 }
 
 class _SideMenuState extends State<SideMenu> {
-  String role="";
+  String roleName="";
+  List roles=[];
+  bool isLoaded=false;
   @override
   void initState() {
-    FirebaseFirestore.instance
-        .collection('admins')
-        .doc(FirebaseAuth.instance.currentUser!.uid)
-        .get()
-        .then((DocumentSnapshot documentSnapshot) {
+    super.initState();
+    isLoaded=true;
+    print("user id ${FirebaseAuth.instance.currentUser!.uid}");
+    FirebaseFirestore.instance.collection('admins').doc(FirebaseAuth.instance.currentUser!.uid).get().then((DocumentSnapshot documentSnapshot) {
       if (documentSnapshot.exists) {
         Map<String, dynamic> data = documentSnapshot.data() as Map<String, dynamic>;
-        setState(() {
-          role=data['role'];
+        FirebaseFirestore.instance.collection('roles').doc(data['roleId']).get().then((DocumentSnapshot roleSnapshot) {
+          if (roleSnapshot.exists) {
+            Map<String, dynamic> role = roleSnapshot.data() as Map<String, dynamic>;
+            setState(() {
+              roles=role['access'];
+              roleName=role['role'];
+              isLoaded=true;
+            });
+
+          }
         });
-        print('Document exists on the database');
+
+
       }
     });
   }
   @override
   Widget build(BuildContext context) {
-    return role==""?Center(child: CircularProgressIndicator(),):Drawer(
+    return !isLoaded?Center(child: CircularProgressIndicator(),):Drawer(
 
         child: Container(
           color: bgColor,
@@ -82,15 +100,15 @@ class _SideMenuState extends State<SideMenu> {
                 child: Image.asset("assets/images/logo.png"),
               ),
 
-              DrawerListTile(
+              roles.contains("Administration")?DrawerListTile(
                 title: "Administration",
                 svgSrc: "assets/icons/school.png",
                 press: () {
                   Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => AdminScreen()));
 
                 },
-              ),
-              ExpansionTile(
+              ):Container(),
+              roles.contains("Academic")?ExpansionTile(
                 leading: Image.asset(
                   "assets/icons/home.png",
                   color: Colors.black,
@@ -150,41 +168,49 @@ class _SideMenuState extends State<SideMenu> {
                     },
                   ),
                 ],
-              ),
-              DrawerListTile(
+              ):Container(),
+              roles.contains("Teachers")?DrawerListTile(
                 title: "Teachers",
                 svgSrc: "assets/icons/teacher.png",
                 press: () {
                   Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => TeacherScreen()));
 
                 },
-              ),
+              ):Container(),
 
-              DrawerListTile(
+              roles.contains("Employees")?DrawerListTile(
                 title: "Employees",
                 svgSrc: "assets/icons/employee.png",
                 press: () {
                   Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => EmployeeScreen()));
 
                 },
-              ),
-              DrawerListTile(
+              ):Container(),
+              roles.contains("Staff")?DrawerListTile(
                 title: "Staff",
                 svgSrc: "assets/icons/department.png",
                 press: () {
                   Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => StaffScreen()));
 
                 },
-              ),
-              DrawerListTile(
+              ):Container(),
+              roles.contains("Students")?DrawerListTile(
                 title: "Students",
                 svgSrc: "assets/icons/students.png",
                 press: () {
-                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => StudentScreen()));
+                  showStudentListDialog(context);
 
                 },
-              ),
-              ExpansionTile(
+              ):Container(),
+              roles.contains("Parents")?DrawerListTile(
+                title: "Parents",
+                svgSrc: "assets/icons/students.png",
+                press: () {
+                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => ParentScreen()));
+
+                },
+              ):Container(),
+              roles.contains("Book Center")?ExpansionTile(
                 leading: Image.asset(
                   "assets/icons/home.png",
                   color: Colors.black,
@@ -204,6 +230,14 @@ class _SideMenuState extends State<SideMenu> {
                     },
                   ),
                   DrawerListTile(
+                    title: "Book Supplier",
+                    svgSrc: "assets/icons/school.png",
+                    press: () {
+                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => BookSupplierScreen()));
+
+                    },
+                  ),
+                  DrawerListTile(
                     title: "Delivery",
                     svgSrc: "assets/icons/department.png",
                     press: () {
@@ -212,8 +246,8 @@ class _SideMenuState extends State<SideMenu> {
                     },
                   ),
                 ],
-              ),
-              ExpansionTile(
+              ):Container(),
+              roles.contains("Uniform Center")?ExpansionTile(
                 leading: Image.asset(
                   "assets/icons/home.png",
                   color: Colors.black,
@@ -225,6 +259,14 @@ class _SideMenuState extends State<SideMenu> {
                 ),
                 children: <Widget>[
                   DrawerListTile(
+                    title: "Uniform Attribute",
+                    svgSrc: "assets/icons/department.png",
+                    press: () {
+                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => UniformAttributeScreen()));
+
+                    },
+                  ),
+                  DrawerListTile(
                     title: "Uniform Category",
                     svgSrc: "assets/icons/school.png",
                     press: () {
@@ -233,18 +275,35 @@ class _SideMenuState extends State<SideMenu> {
                     },
                   ),
                   DrawerListTile(
-                    title: "Uniform Variation",
+                    title: "Low Stock Items",
                     svgSrc: "assets/icons/department.png",
                     press: () {
-                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => UniformVariationScreen()));
+                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => UniformLowStockScreen()));
 
                     },
                   ),
                   DrawerListTile(
                     title: "Uniform Items",
                     svgSrc: "assets/icons/school.png",
-                    press: () {
-                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => UniformItemsScreen()));
+                    press: () async{
+                      List<String> list=[];
+                      list.add("All Categories");
+                      final ProgressDialog pr = ProgressDialog(context: context);
+                      pr.show(max: 100, msg: "Please wait");
+                      await FirebaseFirestore.instance
+                          .collection('uniform_categories')
+                          .get()
+                          .then((QuerySnapshot querySnapshot) {
+                        querySnapshot.docs.forEach((doc) {
+                          Map<String, dynamic> data = doc.data()! as Map<String, dynamic>;
+                          setState(() {
+                            list.add(UniformCategoryModel.fromMap(data, doc.reference.id).name);
+                          });
+                        });
+                      });
+                      pr.close();
+                      Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) => UniformItemsScreen(list)));
+
 
                     },
                   ),
@@ -273,8 +332,8 @@ class _SideMenuState extends State<SideMenu> {
                     },
                   ),
                 ],
-              ),
-              ExpansionTile(
+              ):Container(),
+              roles.contains("Supply Center")?ExpansionTile(
                 leading: Image.asset(
                   "assets/icons/home.png",
                   color: Colors.black,
@@ -326,8 +385,8 @@ class _SideMenuState extends State<SideMenu> {
                     },
                   ),
                 ],
-              ),
-              ExpansionTile(
+              ):Container(),
+              roles.contains("School Busses")?ExpansionTile(
                 leading: Image.asset(
                   "assets/icons/home.png",
                   color: Colors.black,
@@ -379,24 +438,24 @@ class _SideMenuState extends State<SideMenu> {
                     },
                   ),
                 ],
-              ),
-              DrawerListTile(
+              ):Container(),
+              roles.contains("Activity")?DrawerListTile(
                 title: "Activity",
                 svgSrc: "assets/icons/expense.png",
                 press: () {
                   Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => ActivityScreen()));
 
                 },
-              ),
-              DrawerListTile(
+              ):Container(),
+              roles.contains("Transfer")?DrawerListTile(
                 title: "Transfer",
                 svgSrc: "assets/icons/expense.png",
                 press: () {
                   Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => TransferScreen()));
 
                 },
-              ),
-              ExpansionTile(
+              ):Container(),
+              roles.contains("Financial")?ExpansionTile(
                 leading: Image.asset(
                   "assets/icons/home.png",
                   color: Colors.black,
@@ -441,8 +500,8 @@ class _SideMenuState extends State<SideMenu> {
                   ),
 
                 ],
-              ),
-              ExpansionTile(
+              ):Container(),
+              roles.contains("School Revenue")?ExpansionTile(
                 leading: Image.asset(
                   "assets/icons/home.png",
                   color: Colors.black,
@@ -461,7 +520,7 @@ class _SideMenuState extends State<SideMenu> {
 
                     },
                   ),
-                  role=="Accountant"?Container():DrawerListTile(
+                  roleName=="Accountant"?Container():DrawerListTile(
                     title: "Discounts",
                     svgSrc: "assets/icons/expense.png",
                     press: () {
@@ -470,17 +529,17 @@ class _SideMenuState extends State<SideMenu> {
                     },
                   ),
                 ],
-              ),
+              ):Container(),
 
-              DrawerListTile(
+              roles.contains("Expenses")?DrawerListTile(
                 title: "Expenses",
                 svgSrc: "assets/icons/expense.png",
                 press: () {
                   Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => ExpenseScreen()));
 
                 },
-              ),
-              ExpansionTile(
+              ):Container(),
+              roles.contains("Reports")?ExpansionTile(
                 leading: Image.asset(
                   "assets/icons/home.png",
                   color: Colors.black,
@@ -525,15 +584,17 @@ class _SideMenuState extends State<SideMenu> {
                   ),
 
                 ],
-              ),
-              DrawerListTile(
+              ):Container(),
+              roles.contains("Places")?DrawerListTile(
                 title: "Places",
                 svgSrc: "assets/icons/expense.png",
                 press: () {
                   Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => PlaceScreen()));
 
                 },
-              ),
+              ):Container(),
+
+
               DrawerListTile(
                 title: "Logout",
                 svgSrc: "assets/icons/logout.png",

@@ -14,6 +14,7 @@ import 'package:school_management_system/model/teacherModel_model.dart';
 import 'package:school_management_system/screens/academic/class_screen.dart';
 import 'package:school_management_system/screens/academic/department_screen.dart';
 import 'package:school_management_system/screens/academic/grade_screen.dart';
+import 'package:school_management_system/screens/teacher_detail_screen.dart';
 import 'package:school_management_system/screens/teacher_screen.dart';
 import 'package:school_management_system/utils/constants.dart';
 import 'package:sn_progress_dialog/progress_dialog.dart';
@@ -97,6 +98,9 @@ class _TeacherListState extends State<TeacherList> {
                     DataColumn(
                       label: Text("Phone"),
                     ),
+                    DataColumn(
+                      label: Text("Subjects"),
+                    ),
 
                     DataColumn(
                       label: Text("Photo"),
@@ -129,6 +133,11 @@ class _TeacherListState extends State<TeacherList> {
   var _nationalIdController=TextEditingController();
   var _bloodTypeController=TextEditingController();
 
+  var schoolController=TextEditingController();
+  var departmentController=TextEditingController();
+  var _lessonController=TextEditingController();
+  var _staffController=TextEditingController();
+
   List<_TeacherCheckList> schools=[];
   List<_TeacherCheckList> departments=[];
   List<_TeacherCheckList> subjects=[];
@@ -137,8 +146,11 @@ class _TeacherListState extends State<TeacherList> {
     List schoolId=model.schools;
     List departmentId=model.departments;
     List subjectId=model.subjects;
-
-    String imageUrl="";
+    String staffId=model.staffId;
+    List<_TeacherCheckList> tempDepartments=departments;
+    List<_TeacherCheckList> tempSub=subjects;
+    String imageUrl=model.photo;
+    bool assignDuty=model.assignDuty;
     fb.UploadTask? _uploadTask;
     Uri imageUri;
     int _step = 0;
@@ -153,6 +165,8 @@ class _TeacherListState extends State<TeacherList> {
 
             _nameController.text=model.name;
             _phoneController.text=model.phone;
+            _staffController.text=model.staff;
+            _lessonController.text=model.lessonCapacity.toString();
             _addressController.text=model.address;
             _nationalIdController.text=model.nationalId.toString();
             _bloodTypeController.text=model.bloodType.toString();
@@ -268,6 +282,34 @@ class _TeacherListState extends State<TeacherList> {
                           },
                           onStepContinue: () {
                             if (_step < 3) {
+                              if(_step==1){
+                                setState(() {
+                                  tempDepartments=[];
+                                });
+                                departments.forEach((element) {
+                                  schools.forEach((schoolSelected) {
+                                    if(schoolSelected.check && schoolSelected.model.name==element.model.schoolName){
+                                      setState(() {
+                                        tempDepartments.add(element);
+                                      });
+                                    }
+                                  });
+                                });
+                              }
+                              if(_step==2){
+                                setState(() {
+                                  tempSub=[];
+                                });
+                                subjects.forEach((element) {
+                                  departments.forEach((depSelected) {
+                                    if(depSelected.check && depSelected.model.name==element.model.department){
+                                      setState(() {
+                                        tempSub.add(element);
+                                      });
+                                    }
+                                  });
+                                });
+                              }
                               setState(() { _step += 1; });
                               print("step continue $_step");
                             }
@@ -297,6 +339,10 @@ class _TeacherListState extends State<TeacherList> {
                                 'departments': departmentIds,
                                 'subjects': subjectIds,
                                 'photo':imageUrl,
+                                'staff': _staffController.text,
+                                'staffId':staffId,
+                                'assignDuty':assignDuty,
+                                'lessonCapacity': int.parse(_lessonController.text),
                                 'nationalId': _nationalIdController.text,
                                 'bloodType': _bloodTypeController.text,
 
@@ -557,6 +603,455 @@ class _TeacherListState extends State<TeacherList> {
                                     ],
                                   ),
                                   SizedBox(height: 10,),
+                                  Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "Lesson Capacity",
+                                        style: Theme.of(context).textTheme.bodyText1!.apply(color: Colors.black),
+                                      ),
+                                      TextFormField(
+                                        controller: _lessonController,
+                                        style: TextStyle(color: Colors.black),
+                                        validator: (value) {
+                                          if (value == null || value.isEmpty) {
+                                            return 'Please enter some text';
+                                          }
+                                          return null;
+                                        },
+                                        decoration: InputDecoration(
+                                          contentPadding: EdgeInsets.all(15),
+                                          focusedBorder: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(7.0),
+                                            borderSide: BorderSide(
+                                              color: primaryColor,
+                                            ),
+                                          ),
+                                          enabledBorder: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(7.0),
+                                            borderSide: BorderSide(
+                                                color: primaryColor,
+                                                width: 0.5
+                                            ),
+                                          ),
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(7.0),
+                                            borderSide: BorderSide(
+                                              color: primaryColor,
+                                              width: 0.5,
+                                            ),
+                                          ),
+                                          hintText: "",
+                                          floatingLabelBehavior: FloatingLabelBehavior.always,
+                                        ),
+                                      ),
+
+                                    ],
+                                  ),
+                                  SizedBox(height: 10,),
+                                  CheckboxListTile(
+
+                                    title: const Text('Assign Duty',style: TextStyle(color: Colors.black),),
+                                    value: assignDuty,
+                                    onChanged: (bool? value) {
+                                      setState(() {
+                                        assignDuty = value!;
+                                      });
+                                    },
+                                    secondary: const Icon(Icons.work,color: Colors.black,),
+                                  ),
+                                  SizedBox(height: 10,),
+                                  Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "School",
+                                        style: Theme.of(context).textTheme.bodyText1!.apply(color: Colors.black),
+                                      ),
+                                      TextFormField(
+                                        readOnly: true,
+                                        onTap: (){
+                                          showDialog(
+                                              context: context,
+                                              builder: (BuildContext context){
+                                                return StatefulBuilder(
+                                                  builder: (context,setState){
+                                                    return Dialog(
+                                                      shape: RoundedRectangleBorder(
+                                                        borderRadius: const BorderRadius.all(
+                                                          Radius.circular(10.0),
+                                                        ),
+                                                      ),
+                                                      insetAnimationDuration: const Duration(seconds: 1),
+                                                      insetAnimationCurve: Curves.fastOutSlowIn,
+                                                      elevation: 2,
+                                                      child: Container(
+                                                        width: MediaQuery.of(context).size.width*0.3,
+                                                        child: StreamBuilder<QuerySnapshot>(
+                                                          stream: FirebaseFirestore.instance.collection('schools').snapshots(),
+                                                          builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                                                            if (snapshot.hasError) {
+                                                              return Center(
+                                                                child: Column(
+                                                                  children: [
+                                                                    Image.asset("assets/images/wrong.png",width: 150,height: 150,),
+                                                                    Text("Something Went Wrong",style: TextStyle(color: Colors.black))
+
+                                                                  ],
+                                                                ),
+                                                              );
+                                                            }
+
+                                                            if (snapshot.connectionState == ConnectionState.waiting) {
+                                                              return Center(
+                                                                child: CircularProgressIndicator(),
+                                                              );
+                                                            }
+                                                            if (snapshot.data!.size==0){
+                                                              return Center(
+                                                                child: Column(
+                                                                  children: [
+                                                                    Image.asset("assets/images/empty.png",width: 150,height: 150,),
+                                                                    Text("No Schools Added",style: TextStyle(color: Colors.black))
+
+                                                                  ],
+                                                                ),
+                                                              );
+
+                                                            }
+
+                                                            return new ListView(
+                                                              shrinkWrap: true,
+                                                              children: snapshot.data!.docs.map((DocumentSnapshot document) {
+                                                                Map<String, dynamic> data = document.data() as Map<String, dynamic>;
+
+                                                                return new Padding(
+                                                                  padding: const EdgeInsets.all(15.0),
+                                                                  child: ListTile(
+                                                                    onTap: (){
+                                                                      setState(() {
+                                                                        schoolController.text="${data['name']}";
+
+                                                                      });
+                                                                      Navigator.pop(context);
+                                                                    },
+                                                                    leading: CircleAvatar(
+                                                                      radius: 25,
+                                                                      backgroundImage: NetworkImage(data['logo']),
+                                                                      backgroundColor: Colors.indigoAccent,
+                                                                      foregroundColor: Colors.white,
+                                                                    ),
+                                                                    title: Text("${data['name']}",style: TextStyle(color: Colors.black),),
+                                                                  ),
+                                                                );
+                                                              }).toList(),
+                                                            );
+                                                          },
+                                                        ),
+                                                      ),
+                                                    );
+                                                  },
+                                                );
+                                              }
+                                          );
+                                        },
+                                        controller: schoolController,
+                                        style: TextStyle(color: Colors.black),
+                                        validator: (value) {
+                                          if (value == null || value.isEmpty) {
+                                            return 'Please enter some text';
+                                          }
+                                          return null;
+                                        },
+                                        decoration: InputDecoration(
+                                          contentPadding: EdgeInsets.all(15),
+                                          focusedBorder: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(7.0),
+                                            borderSide: BorderSide(
+                                              color: primaryColor,
+                                            ),
+                                          ),
+                                          enabledBorder: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(7.0),
+                                            borderSide: BorderSide(
+                                                color: primaryColor,
+                                                width: 0.5
+                                            ),
+                                          ),
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(7.0),
+                                            borderSide: BorderSide(
+                                              color: primaryColor,
+                                              width: 0.5,
+                                            ),
+                                          ),
+                                          hintText: "",
+                                          floatingLabelBehavior: FloatingLabelBehavior.always,
+                                        ),
+                                      ),
+
+                                    ],
+                                  ),
+                                  SizedBox(height: 10,),
+                                  Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "Department",
+                                        style: Theme.of(context).textTheme.bodyText1!.apply(color: Colors.black),
+                                      ),
+                                      TextFormField(
+                                        readOnly: true,
+                                        onTap: (){
+                                          showDialog(
+                                              context: context,
+                                              builder: (BuildContext context){
+                                                return StatefulBuilder(
+                                                  builder: (context,setState){
+                                                    return Dialog(
+                                                      shape: RoundedRectangleBorder(
+                                                        borderRadius: const BorderRadius.all(
+                                                          Radius.circular(10.0),
+                                                        ),
+                                                      ),
+                                                      insetAnimationDuration: const Duration(seconds: 1),
+                                                      insetAnimationCurve: Curves.fastOutSlowIn,
+                                                      elevation: 2,
+                                                      child: Container(
+                                                        width: MediaQuery.of(context).size.width*0.3,
+                                                        child: StreamBuilder<QuerySnapshot>(
+                                                          stream: FirebaseFirestore.instance.collection('departments')
+                                                              .where('schoolName',isEqualTo:schoolController.text).snapshots(),
+                                                          builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                                                            if (snapshot.hasError) {
+                                                              return Center(
+                                                                child: Column(
+                                                                  children: [
+                                                                    Image.asset("assets/images/wrong.png",width: 150,height: 150,),
+                                                                    Text("Something Went Wrong",style: TextStyle(color: Colors.black))
+
+                                                                  ],
+                                                                ),
+                                                              );
+                                                            }
+
+                                                            if (snapshot.connectionState == ConnectionState.waiting) {
+                                                              return Center(
+                                                                child: CircularProgressIndicator(),
+                                                              );
+                                                            }
+                                                            if (snapshot.data!.size==0){
+                                                              return Center(
+                                                                child: Column(
+                                                                  children: [
+                                                                    Image.asset("assets/images/empty.png",width: 150,height: 150,),
+                                                                    Text("No Departments Added",style: TextStyle(color: Colors.black))
+
+                                                                  ],
+                                                                ),
+                                                              );
+
+                                                            }
+
+                                                            return new ListView(
+                                                              shrinkWrap: true,
+                                                              children: snapshot.data!.docs.map((DocumentSnapshot document) {
+                                                                Map<String, dynamic> data = document.data() as Map<String, dynamic>;
+
+                                                                return new Padding(
+                                                                  padding: const EdgeInsets.all(15.0),
+                                                                  child: ListTile(
+                                                                    onTap: (){
+                                                                      setState(() {
+                                                                        departmentController.text="${data['name']}";
+                                                                      });
+                                                                      Navigator.pop(context);
+                                                                    },
+
+                                                                    title: Text("${data['name']}",style: TextStyle(color: Colors.black),),
+                                                                  ),
+                                                                );
+                                                              }).toList(),
+                                                            );
+                                                          },
+                                                        ),
+                                                      ),
+                                                    );
+                                                  },
+                                                );
+                                              }
+                                          );
+                                        },
+                                        controller: departmentController,
+                                        style: TextStyle(color: Colors.black),
+                                        validator: (value) {
+                                          if (value == null || value.isEmpty) {
+                                            return 'Please enter some text';
+                                          }
+                                          return null;
+                                        },
+                                        decoration: InputDecoration(
+                                          contentPadding: EdgeInsets.all(15),
+                                          focusedBorder: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(7.0),
+                                            borderSide: BorderSide(
+                                              color: primaryColor,
+                                            ),
+                                          ),
+                                          enabledBorder: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(7.0),
+                                            borderSide: BorderSide(
+                                                color: primaryColor,
+                                                width: 0.5
+                                            ),
+                                          ),
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(7.0),
+                                            borderSide: BorderSide(
+                                              color: primaryColor,
+                                              width: 0.5,
+                                            ),
+                                          ),
+                                          hintText: "",
+                                          floatingLabelBehavior: FloatingLabelBehavior.always,
+                                        ),
+                                      ),
+
+                                    ],
+                                  ),
+                                  SizedBox(height: 10,),
+                                  Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "Staff",
+                                        style: Theme.of(context).textTheme.bodyText1!.apply(color: Colors.black),
+                                      ),
+                                      TextFormField(
+                                        readOnly: true,
+                                        onTap: (){
+                                          showDialog(
+                                              context: context,
+                                              builder: (BuildContext context){
+                                                return StatefulBuilder(
+                                                  builder: (context,setState){
+                                                    return Dialog(
+                                                      shape: RoundedRectangleBorder(
+                                                        borderRadius: const BorderRadius.all(
+                                                          Radius.circular(10.0),
+                                                        ),
+                                                      ),
+                                                      insetAnimationDuration: const Duration(seconds: 1),
+                                                      insetAnimationCurve: Curves.fastOutSlowIn,
+                                                      elevation: 2,
+                                                      child: Container(
+                                                        width: MediaQuery.of(context).size.width*0.3,
+                                                        child: StreamBuilder<QuerySnapshot>(
+                                                          stream: FirebaseFirestore.instance.collection('staff')
+                                                              .where('department',isEqualTo:departmentController.text).snapshots(),
+                                                          builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                                                            if (snapshot.hasError) {
+                                                              return Center(
+                                                                child: Column(
+                                                                  children: [
+                                                                    Image.asset("assets/images/wrong.png",width: 150,height: 150,),
+                                                                    Text("Something Went Wrong",style: TextStyle(color: Colors.black))
+
+                                                                  ],
+                                                                ),
+                                                              );
+                                                            }
+
+                                                            if (snapshot.connectionState == ConnectionState.waiting) {
+                                                              return Center(
+                                                                child: CircularProgressIndicator(),
+                                                              );
+                                                            }
+                                                            if (snapshot.data!.size==0){
+                                                              return Center(
+                                                                child: Column(
+                                                                  children: [
+                                                                    Image.asset("assets/images/empty.png",width: 150,height: 150,),
+                                                                    Text("No Staff Added",style: TextStyle(color: Colors.black))
+
+                                                                  ],
+                                                                ),
+                                                              );
+
+                                                            }
+
+                                                            return new ListView(
+                                                              shrinkWrap: true,
+                                                              children: snapshot.data!.docs.map((DocumentSnapshot document) {
+                                                                Map<String, dynamic> data = document.data() as Map<String, dynamic>;
+
+                                                                return new Padding(
+                                                                  padding: const EdgeInsets.all(15.0),
+                                                                  child: ListTile(
+                                                                    onTap: (){
+                                                                      setState(() {
+                                                                        _staffController.text="${data['name']}";
+                                                                        staffId=document.reference.id;
+                                                                      });
+                                                                      Navigator.pop(context);
+                                                                    },
+
+                                                                    title: Text("${data['name']}",style: TextStyle(color: Colors.black),),
+                                                                  ),
+                                                                );
+                                                              }).toList(),
+                                                            );
+                                                          },
+                                                        ),
+                                                      ),
+                                                    );
+                                                  },
+                                                );
+                                              }
+                                          );
+                                        },
+                                        controller: _staffController,
+                                        style: TextStyle(color: Colors.black),
+                                        validator: (value) {
+                                          if (value == null || value.isEmpty) {
+                                            return 'Please enter some text';
+                                          }
+                                          return null;
+                                        },
+                                        decoration: InputDecoration(
+                                          contentPadding: EdgeInsets.all(15),
+                                          focusedBorder: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(7.0),
+                                            borderSide: BorderSide(
+                                              color: primaryColor,
+                                            ),
+                                          ),
+                                          enabledBorder: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(7.0),
+                                            borderSide: BorderSide(
+                                                color: primaryColor,
+                                                width: 0.5
+                                            ),
+                                          ),
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(7.0),
+                                            borderSide: BorderSide(
+                                              color: primaryColor,
+                                              width: 0.5,
+                                            ),
+                                          ),
+                                          hintText: "",
+                                          floatingLabelBehavior: FloatingLabelBehavior.always,
+                                        ),
+                                      ),
+
+                                    ],
+                                  ),
+                                  SizedBox(height: 10,),
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
@@ -628,16 +1123,16 @@ class _TeacherListState extends State<TeacherList> {
                               content: Container(
                                 child: ListView.builder(
                                   shrinkWrap: true,
-                                  itemCount: departments.length,
+                                  itemCount: tempDepartments.length,
                                   itemBuilder: (context,int i){
                                     return Padding(
                                         padding: const EdgeInsets.all(15.0),
                                         child: CheckboxListTile(
-                                          title: Text(departments[i].model.name),
-                                          value: departments[i].check,
+                                          title: Text(tempDepartments[i].model.name),
+                                          value: tempDepartments[i].check,
                                           onChanged: (bool? value) {
                                             setState(() {
-                                              departments[i].check = value!;
+                                              tempDepartments[i].check = value!;
                                             });
                                           },
                                         )
@@ -653,16 +1148,16 @@ class _TeacherListState extends State<TeacherList> {
                               content:Container(
                                 child: ListView.builder(
                                   shrinkWrap: true,
-                                  itemCount: subjects.length,
+                                  itemCount: tempSub.length,
                                   itemBuilder: (context,int i){
                                     return Padding(
                                         padding: const EdgeInsets.all(15.0),
                                         child: CheckboxListTile(
-                                          title: Text(subjects[i].model.name),
-                                          value: subjects[i].check,
+                                          title: Text(tempSub[i].model.name),
+                                          value: tempSub[i].check,
                                           onChanged: (bool? value) {
                                             setState(() {
-                                              subjects[i].check = value!;
+                                              tempSub[i].check = value!;
                                             });
                                           },
                                         )
@@ -688,12 +1183,71 @@ class _TeacherListState extends State<TeacherList> {
   DataRow _buildListItem(BuildContext context, DocumentSnapshot data) {
     final model = TeacherModel.fromSnapshot(data);
     return DataRow(
+        onSelectChanged: (newValue) {
+          Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) => TeacherDetailScreen(model)));
+        },
         cells: [
           DataCell(Text(model.uniqueId)),
           DataCell(Text(model.name)),
           DataCell(Text(model.email)),
           DataCell(Text(model.phone)),
+          DataCell(Text("View"),
+          onTap: ()async{
+            List<String> subjects=[];
+
+            await FirebaseFirestore.instance
+                .collection('subjects')
+                .get()
+                .then((QuerySnapshot querySnapshot) {
+              querySnapshot.docs.forEach((doc) {
+                if(model.subjects.contains(doc.reference.id))
+                  subjects.add(doc["name"]);
+              });
+            });
+            showDialog(
+                context: context,
+                builder: (BuildContext context){
+                  return StatefulBuilder(
+                    builder: (context,setState){
+                      return Dialog(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(10.0),
+                          ),
+                        ),
+                        insetAnimationDuration: const Duration(seconds: 1),
+                        insetAnimationCurve: Curves.fastOutSlowIn,
+                        elevation: 2,
+                        child: Container(
+                          width: MediaQuery.of(context).size.width*0.3,
+                          child: Column(
+
+                            children: [
+                              Container(
+                                margin: EdgeInsets.all(10),
+                                child:Text("Subjects")
+                              ),
+                              Expanded(
+                                child: ListView.builder(
+                                  itemCount: subjects.length,
+                                  itemBuilder: (BuildContext context,int index){
+                                    return Text(subjects[index]);
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                }
+            );
+          }),
+
+
           DataCell(Image.network(model.photo,height: 50,width: 50,)),
+
           DataCell(Row(
             children: [
               IconButton(

@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:school_management_system/model/department_model.dart';
 import 'package:school_management_system/screens/academic/department_screen.dart';
+import 'package:school_management_system/screens/academic/sub_department_screen.dart';
 import 'package:school_management_system/utils/constants.dart';
 import 'package:sn_progress_dialog/progress_dialog.dart';
 import 'package:firebase/firebase.dart' as fb;
@@ -555,9 +556,22 @@ Future<void> _showEditDepartment(BuildContext context,DepartmentModel model) asy
 DataRow _buildListItem(BuildContext context, DocumentSnapshot data) {
   final model = DepartmentModel.fromSnapshot(data);
   return DataRow(
+      onSelectChanged: (newValue) async{
+        final ProgressDialog pr = ProgressDialog(context: context);
+        pr.show(max: 100, msg: "Please wait");
+        List<String> departmentIds=[];
+        departmentIds.add(model.id);
+        FirebaseFirestore.instance.collection('departments').where('mainDepartmentId',isEqualTo: model.id).get().then((QuerySnapshot querySnapshot) {
+          querySnapshot.docs.forEach((doc) {
+           departmentIds.add(doc.reference.id);
+          });
+        });
+        pr.close();
+        Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) => SubDepartmentScreen(departmentIds)));
+      },
       cells: [
-    DataCell(Text(model.name)),
-    DataCell(Text(model.schoolName)),
+        DataCell(Text(model.name)),
+        DataCell(Text(model.schoolName)),
         DataCell(model.isSubDepartment?Text("Yes"):Text("No")),
         DataCell(Text(model.mainDepartmentName)),
         DataCell(Row(
@@ -594,7 +608,7 @@ DataRow _buildListItem(BuildContext context, DocumentSnapshot data) {
           ],
         )),
 
-  ]);
+      ]);
 }
 
 

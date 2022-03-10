@@ -8,7 +8,9 @@ import 'package:intl/intl.dart';
 import 'package:school_management_system/components/uniform_center/uniform_delivery/uniform_delivery_list.dart';
 import 'package:school_management_system/model/checklist_model.dart';
 import 'package:school_management_system/model/student_model.dart';
+import 'package:school_management_system/model/uniform/uniform_category_model.dart';
 import 'package:school_management_system/model/uniform/uniform_item_model.dart';
+import 'package:school_management_system/screens/uniform/uniform_add_delivery.dart';
 import 'package:school_management_system/utils/constants.dart';
 import 'package:school_management_system/utils/header.dart';
 import 'package:school_management_system/utils/responsive.dart';
@@ -62,6 +64,7 @@ class _UniformDeliveryState extends State<UniformDelivery> {
     }).then((value) {
       FirebaseFirestore.instance.collection('fees').add({
         'student': _studentController.text,
+        'itemId': value.id,
         'school': _schoolController.text,
         'department': _departmentController.text,
         'studentId': _studentId,
@@ -664,23 +667,24 @@ class _UniformDeliveryState extends State<UniformDelivery> {
                               ),
                             ),
                             onPressed: () async{
-                              List<CheckListModel> list=[];
+                              List<String> list=[];
+                              list.add("All Categories");
                               final ProgressDialog pr = ProgressDialog(context: context);
                               pr.show(max: 100, msg: "Please wait");
                               await FirebaseFirestore.instance
-                                  .collection('uniform_items')
+                                  .collection('uniform_categories')
                                   .get()
                                   .then((QuerySnapshot querySnapshot) {
                                 querySnapshot.docs.forEach((doc) {
                                   Map<String, dynamic> data = doc.data()! as Map<String, dynamic>;
                                   setState(() {
-                                    CheckListModel model=new CheckListModel(false,UniformItemModel.fromMap(data, doc.reference.id));
-                                    list.add(model);
+                                    list.add(UniformCategoryModel.fromMap(data, doc.reference.id).name);
                                   });
                                 });
                               });
                               pr.close();
-                              _showAddDialog(list);
+                              Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) => UniformAddDeliveryScreen(list)));
+
                             },
                             icon: Icon(Icons.add),
                             label: Text("Add Delivery"),

@@ -431,7 +431,10 @@ class _DepartmentsState extends State<Departments> {
                             InkWell(
                               onTap: (){
                                 print("tap");
-                                add(schoolId,_mainDepartmentId);
+
+                                if (_formKey.currentState!.validate()) {
+                                  add(schoolId,_mainDepartmentId);
+                                }
                               },
                               child: Container(
                                 height: 50,

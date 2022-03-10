@@ -13,6 +13,7 @@ import 'package:school_management_system/model/department_model.dart';
 import 'package:school_management_system/model/employee_model.dart';
 import 'package:school_management_system/model/fee_model.dart';
 import 'package:school_management_system/model/grade_model.dart';
+import 'package:school_management_system/model/payment_info_model.dart';
 import 'package:school_management_system/model/student_model.dart';
 import 'package:school_management_system/screens/academic/class_screen.dart';
 import 'package:school_management_system/screens/academic/department_screen.dart';
@@ -36,12 +37,21 @@ class _RevenueListState extends State<RevenueList> {
   bool isSearched=false;
   String searchValue='Name';
   String searchFeeCategory="";
-  var _searchStudentController=TextEditingController();
+  var _searchStudentController=TextEditingController();String _searchStudentId="";
   var _cashontroller=TextEditingController();
   var _bankController=TextEditingController();
   var _visaController=TextEditingController();
   var _messageController=TextEditingController();
-  String _searchStudentId="";
+  var _bankPaymentDateController=TextEditingController();
+  var _visaPaymentDateController=TextEditingController();
+  var _bankReceiptNumberController=TextEditingController();
+  var _cardHolderNameController=TextEditingController();
+  var _receiptNumberController=TextEditingController();
+  var _depositorNameController=TextEditingController();
+  var _discountCategoryController=TextEditingController();
+  var _discountNameController=TextEditingController();
+  var _finalAmountController=TextEditingController();
+
   setSearchId(String id){
     setState(() {
       _searchStudentId=id;
@@ -2372,14 +2382,18 @@ class _RevenueListState extends State<RevenueList> {
                           title: 'Change Status',
                           desc: 'Are you sure you want to change status?',
                           btnCancelOnPress: () {
+
                             Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => RevenueScreen()));
                           },
                           btnOkOnPress: () {
                             FirebaseFirestore.instance.collection('fees').doc(model.id).update({
                               'status':"Paid"
                             }).then((value) {
+                              FirebaseFirestore.instance.collection('uniform_deliveries').doc(model.itemId).update({
+                                'status':"Ready to deliver",
+                                'payment':"Paid",
 
-
+                              });
                               Navigator.pop(context);
                             }).onError((error, stackTrace) {
                               var width;
@@ -2412,6 +2426,68 @@ class _RevenueListState extends State<RevenueList> {
 
                       },
                       title: Text("Paid",style: TextStyle(color: Colors.black),),
+                    ),
+                    Divider(color: Colors.grey,),
+                    ListTile(
+                      onTap: (){
+                        var width;
+                        if(Responsive.isMobile(context)){
+                          width=MediaQuery.of(context).size.width*0.8;
+                        }
+                        else if(Responsive.isTablet(context)){
+                          width=MediaQuery.of(context).size.width*0.6;
+                        }
+                        else if(Responsive.isDesktop(context)){
+                          width=MediaQuery.of(context).size.width*0.3;
+                        }
+                        AwesomeDialog(
+                          width: width,
+                          context: context,
+                          dialogType: DialogType.QUESTION,
+                          animType: AnimType.BOTTOMSLIDE,
+                          dialogBackgroundColor: secondaryColor,
+                          title: 'Change Status',
+                          desc: 'Are you sure you want to change status?',
+                          btnCancelOnPress: () {
+                            Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => RevenueScreen()));
+                          },
+                          btnOkOnPress: () {
+                            FirebaseFirestore.instance.collection('fees').doc(model.id).update({
+                              'status':"Partial Paid"
+                            }).then((value) {
+
+                              Navigator.pop(context);
+                            }).onError((error, stackTrace) {
+                              var width;
+                              if(Responsive.isMobile(context)){
+                                width=MediaQuery.of(context).size.width*0.8;
+                              }
+                              else if(Responsive.isTablet(context)){
+                                width=MediaQuery.of(context).size.width*0.6;
+                              }
+                              else if(Responsive.isDesktop(context)){
+                                width=MediaQuery.of(context).size.width*0.3;
+                              }
+                              AwesomeDialog(
+                                width: width,
+                                context: context,
+                                dialogType: DialogType.ERROR,
+                                animType: AnimType.BOTTOMSLIDE,
+                                dialogBackgroundColor: secondaryColor,
+                                title: 'Error : Unable to change status',
+                                desc: '${error.toString()}',
+
+                                btnOkOnPress: () {
+                                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => RevenueScreen()));
+
+                                },
+                              )..show();
+                            });
+                          },
+                        )..show();
+
+                      },
+                      title: Text("Partial Paid",style: TextStyle(color: Colors.black),),
                     ),
                     Divider(color: Colors.grey,),
                     ListTile(
@@ -2727,6 +2803,9 @@ class _RevenueListState extends State<RevenueList> {
                             ],
                           ),
                           SizedBox(height: 10,),
+
+
+
                           Column(
                             mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -2825,6 +2904,931 @@ class _RevenueListState extends State<RevenueList> {
       },
     );
   }
+
+  Future<void> _showUniformPaymentInfoDialog(FeeModel model,PaymentInfoModel paymentInfoModel) async {
+    String imageUrl=paymentInfoModel.image;
+    fb.UploadTask? _uploadTask;
+    Uri imageUri;
+    bool imageUploading=false;
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context,setState){
+            uploadToFirebase(File imageFile) async {
+              final filePath = 'images/${DateTime.now()}.png';
+
+              print("put");
+              setState((){
+                imageUploading=true;
+                _uploadTask = fb.storage().refFromURL(storageBucketPath).child(filePath).put(imageFile);
+              });
+
+              fb.UploadTaskSnapshot taskSnapshot = await _uploadTask!.future;
+              imageUri = await taskSnapshot.ref.getDownloadURL();
+              setState((){
+                imageUrl=imageUri.toString();
+                imageUploading=false;
+                //imageUrl= "https://firebasestorage.googleapis.com/v0/b/accesfy-882e6.appspot.com/o/bookingPics%2F1622649147001?alt=media&token=45a4483c-2f29-48ab-bcf1-813fd8fa304b";
+                print(imageUrl);
+              });
+
+            }
+
+            uploadImage() async {
+              // HTML input element
+              FileUploadInputElement uploadInput = FileUploadInputElement();
+              uploadInput.click();
+
+              uploadInput.onChange.listen(
+                    (changeEvent) {
+                  final file = uploadInput.files!.first;
+                  final reader = FileReader();
+                  reader.readAsDataUrl(file);
+                  reader.onLoadEnd.listen(
+                        (loadEndEvent) async {
+                      uploadToFirebase(file);
+                    },
+                  );
+                },
+              );
+            }
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: const BorderRadius.all(
+                  Radius.circular(10.0),
+                ),
+              ),
+              insetAnimationDuration: const Duration(seconds: 1),
+              insetAnimationCurve: Curves.fastOutSlowIn,
+              elevation: 2,
+
+              child: Container(
+                width: MediaQuery.of(context).size.width*0.5,
+                height: MediaQuery.of(context).size.height*0.8,
+                padding: EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10)
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Stack(
+                      children: [
+                        Align(
+                          alignment: Alignment.center,
+                          child: Container(
+                            margin: EdgeInsets.all(10),
+                            child: Text("Fee Payment Info",textAlign: TextAlign.center,style: Theme.of(context).textTheme.headline5!.apply(color: Colors.black),),
+                          ),
+                        ),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: Container(
+                            margin: EdgeInsets.all(10),
+                            child: IconButton(
+                              icon: Icon(Icons.close,color: Colors.grey,),
+                              onPressed: ()=>Navigator.pop(context),
+                            ),
+                          ),
+                        ),
+
+                      ],
+                    ),
+                    Expanded(
+                      child: ListView(
+                        children: [
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Amount Paid",
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyText1!
+                                    .apply(color: Colors.black),
+                              ),
+                              Text(
+                                model.amountPaid.toString(),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyText2!
+                                    .apply(color: Colors.black),
+                              ),
+
+                            ],
+                          ),
+                          SizedBox(height: 10,),
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Amount Due",
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyText1!
+                                    .apply(color: Colors.black),
+                              ),
+                              Text(
+                                model.amountDue.toString(),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyText2!
+                                    .apply(color: Colors.black),
+                              ),
+
+                            ],
+                          ),
+                          SizedBox(height: 20,),
+                          Container(
+                            padding: EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                                color: Colors.grey[300],
+                              borderRadius: BorderRadius.circular(15)
+                            ),
+                            child: Column(
+                              children: [
+                                SizedBox(height: 10,),
+                                Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Cash Payment",
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyText1!
+                                          .apply(color: Colors.black),
+                                    ),
+                                    TextFormField(
+                                      controller: _cashontroller,
+                                      style: TextStyle(color: Colors.black),
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return 'Please enter some text';
+                                        }
+                                        return null;
+                                      },
+                                      decoration: InputDecoration(
+                                        contentPadding: EdgeInsets.all(15),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(7.0),
+                                          borderSide: BorderSide(
+                                            color: primaryColor,
+                                          ),
+                                        ),
+                                        enabledBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(7.0),
+                                          borderSide:
+                                          BorderSide(color: primaryColor, width: 0.5),
+                                        ),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(7.0),
+                                          borderSide: BorderSide(
+                                            color: primaryColor,
+                                            width: 0.5,
+                                          ),
+                                        ),
+                                        hintText: "",
+                                        floatingLabelBehavior:
+                                        FloatingLabelBehavior.always,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 10,),
+                                Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Depositor Name",
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyText1!
+                                          .apply(color: Colors.black),
+                                    ),
+                                    TextFormField(
+                                      controller: _depositorNameController,
+                                      style: TextStyle(color: Colors.black),
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return 'Please enter some text';
+                                        }
+                                        return null;
+                                      },
+                                      decoration: InputDecoration(
+                                        contentPadding: EdgeInsets.all(15),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(7.0),
+                                          borderSide: BorderSide(
+                                            color: primaryColor,
+                                          ),
+                                        ),
+                                        enabledBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(7.0),
+                                          borderSide:
+                                          BorderSide(color: primaryColor, width: 0.5),
+                                        ),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(7.0),
+                                          borderSide: BorderSide(
+                                            color: primaryColor,
+                                            width: 0.5,
+                                          ),
+                                        ),
+                                        hintText: "",
+                                        floatingLabelBehavior:
+                                        FloatingLabelBehavior.always,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 10,),
+                                Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Receipt Number",
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyText1!
+                                          .apply(color: Colors.black),
+                                    ),
+                                    TextFormField(
+                                      controller: _receiptNumberController,
+                                      style: TextStyle(color: Colors.black),
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return 'Please enter some text';
+                                        }
+                                        return null;
+                                      },
+                                      decoration: InputDecoration(
+                                        contentPadding: EdgeInsets.all(15),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(7.0),
+                                          borderSide: BorderSide(
+                                            color: primaryColor,
+                                          ),
+                                        ),
+                                        enabledBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(7.0),
+                                          borderSide:
+                                          BorderSide(color: primaryColor, width: 0.5),
+                                        ),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(7.0),
+                                          borderSide: BorderSide(
+                                            color: primaryColor,
+                                            width: 0.5,
+                                          ),
+                                        ),
+                                        hintText: "",
+                                        floatingLabelBehavior:
+                                        FloatingLabelBehavior.always,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 10,),
+                              ],
+                            ),
+                          ),
+                          SizedBox(height: 20,),
+                          Container(
+                            padding: EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                                color: Colors.grey[300],
+                                borderRadius: BorderRadius.circular(15)
+                            ),
+                            child: Column(
+                              children: [
+                                SizedBox(height: 10,),
+                                Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Bank Payment",
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyText1!
+                                          .apply(color: Colors.black),
+                                    ),
+                                    TextFormField(
+                                      controller: _bankController,
+                                      style: TextStyle(color: Colors.black),
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return 'Please enter some text';
+                                        }
+                                        return null;
+                                      },
+                                      decoration: InputDecoration(
+                                        contentPadding: EdgeInsets.all(15),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(7.0),
+                                          borderSide: BorderSide(
+                                            color: primaryColor,
+                                          ),
+                                        ),
+                                        enabledBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(7.0),
+                                          borderSide:
+                                          BorderSide(color: primaryColor, width: 0.5),
+                                        ),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(7.0),
+                                          borderSide: BorderSide(
+                                            color: primaryColor,
+                                            width: 0.5,
+                                          ),
+                                        ),
+                                        hintText: "",
+                                        floatingLabelBehavior:
+                                        FloatingLabelBehavior.always,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 10,),
+                                Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Payment Date",
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyText1!
+                                          .apply(color: Colors.black),
+                                    ),
+                                    TextFormField(
+                                      controller: _bankPaymentDateController,
+                                      style: TextStyle(color: Colors.black),
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return 'Please enter some text';
+                                        }
+                                        return null;
+                                      },
+                                      decoration: InputDecoration(
+                                        contentPadding: EdgeInsets.all(15),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(7.0),
+                                          borderSide: BorderSide(
+                                            color: primaryColor,
+                                          ),
+                                        ),
+                                        enabledBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(7.0),
+                                          borderSide:
+                                          BorderSide(color: primaryColor, width: 0.5),
+                                        ),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(7.0),
+                                          borderSide: BorderSide(
+                                            color: primaryColor,
+                                            width: 0.5,
+                                          ),
+                                        ),
+                                        hintText: "",
+                                        floatingLabelBehavior:
+                                        FloatingLabelBehavior.always,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 10,),
+                                Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Bank Receipt Number",
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyText1!
+                                          .apply(color: Colors.black),
+                                    ),
+                                    TextFormField(
+                                      controller: _bankReceiptNumberController,
+                                      style: TextStyle(color: Colors.black),
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return 'Please enter some text';
+                                        }
+                                        return null;
+                                      },
+                                      decoration: InputDecoration(
+                                        contentPadding: EdgeInsets.all(15),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(7.0),
+                                          borderSide: BorderSide(
+                                            color: primaryColor,
+                                          ),
+                                        ),
+                                        enabledBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(7.0),
+                                          borderSide:
+                                          BorderSide(color: primaryColor, width: 0.5),
+                                        ),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(7.0),
+                                          borderSide: BorderSide(
+                                            color: primaryColor,
+                                            width: 0.5,
+                                          ),
+                                        ),
+                                        hintText: "",
+                                        floatingLabelBehavior:
+                                        FloatingLabelBehavior.always,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 10,),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Container(
+                                      height: 100,
+                                      width: 150,
+                                      child: imageUploading?Padding(
+                                        padding: EdgeInsets.all(10),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Text("Uploading",style: TextStyle(color: primaryColor),),
+                                            SizedBox(width: 10,),
+                                            CircularProgressIndicator()
+                                          ],),
+                                      ):imageUrl==""?
+                                      Image.asset("assets/images/placeholder.png",height: 100,width: 150,fit: BoxFit.cover,)
+                                          :Image.network(imageUrl,height: 100,width: 150,fit: BoxFit.cover,),
+                                    ),
+
+                                    InkWell(
+                                      onTap: (){
+                                        uploadImage();
+                                      },
+                                      child: Container(
+                                        height: 50,
+                                        width: MediaQuery.of(context).size.width*0.15,
+                                        color: Colors.black,
+                                        alignment: Alignment.center,
+                                        child: Text("Add Image",style: Theme.of(context).textTheme.button!.apply(color: Colors.white),),
+                                      ),
+                                    )
+                                  ],
+                                ),
+                                SizedBox(height: 10,),
+                              ],
+                            ),
+                          ),
+
+                          SizedBox(height: 20,),
+                          Container(
+                            padding: EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                                color: Colors.grey[300],
+                                borderRadius: BorderRadius.circular(15)
+                            ),
+                            child: Column(
+                              children: [
+                                SizedBox(height: 10,),
+                                Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Visa Payment",
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyText1!
+                                          .apply(color: Colors.black),
+                                    ),
+                                    TextFormField(
+                                      controller: _visaController,
+                                      style: TextStyle(color: Colors.black),
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return 'Please enter some text';
+                                        }
+                                        return null;
+                                      },
+                                      decoration: InputDecoration(
+                                        contentPadding: EdgeInsets.all(15),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(7.0),
+                                          borderSide: BorderSide(
+                                            color: primaryColor,
+                                          ),
+                                        ),
+                                        enabledBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(7.0),
+                                          borderSide:
+                                          BorderSide(color: primaryColor, width: 0.5),
+                                        ),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(7.0),
+                                          borderSide: BorderSide(
+                                            color: primaryColor,
+                                            width: 0.5,
+                                          ),
+                                        ),
+                                        hintText: "",
+                                        floatingLabelBehavior:
+                                        FloatingLabelBehavior.always,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 10,),
+                                Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Payment Date",
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyText1!
+                                          .apply(color: Colors.black),
+                                    ),
+                                    TextFormField(
+                                      controller: _visaPaymentDateController,
+                                      style: TextStyle(color: Colors.black),
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return 'Please enter some text';
+                                        }
+                                        return null;
+                                      },
+                                      decoration: InputDecoration(
+                                        contentPadding: EdgeInsets.all(15),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(7.0),
+                                          borderSide: BorderSide(
+                                            color: primaryColor,
+                                          ),
+                                        ),
+                                        enabledBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(7.0),
+                                          borderSide:
+                                          BorderSide(color: primaryColor, width: 0.5),
+                                        ),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(7.0),
+                                          borderSide: BorderSide(
+                                            color: primaryColor,
+                                            width: 0.5,
+                                          ),
+                                        ),
+                                        hintText: "",
+                                        floatingLabelBehavior:
+                                        FloatingLabelBehavior.always,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 10,),
+                                Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Card Holder Name",
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyText1!
+                                          .apply(color: Colors.black),
+                                    ),
+                                    TextFormField(
+                                      controller: _cardHolderNameController,
+                                      style: TextStyle(color: Colors.black),
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return 'Please enter some text';
+                                        }
+                                        return null;
+                                      },
+                                      decoration: InputDecoration(
+                                        contentPadding: EdgeInsets.all(15),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(7.0),
+                                          borderSide: BorderSide(
+                                            color: primaryColor,
+                                          ),
+                                        ),
+                                        enabledBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(7.0),
+                                          borderSide:
+                                          BorderSide(color: primaryColor, width: 0.5),
+                                        ),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(7.0),
+                                          borderSide: BorderSide(
+                                            color: primaryColor,
+                                            width: 0.5,
+                                          ),
+                                        ),
+                                        hintText: "",
+                                        floatingLabelBehavior:
+                                        FloatingLabelBehavior.always,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 10,),
+                              ],
+                            ),
+                          ),
+
+
+
+                          SizedBox(height: 20,),
+
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Confirmation Message",
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyText1!
+                                    .apply(color: Colors.black),
+                              ),
+                              TextFormField(
+                                maxLines: 3,
+                                minLines: 3,
+                                controller: _messageController,
+                                style: TextStyle(color: Colors.black),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please enter some text';
+                                  }
+                                  return null;
+                                },
+                                decoration: InputDecoration(
+                                  contentPadding: EdgeInsets.all(15),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(7.0),
+                                    borderSide: BorderSide(
+                                      color: primaryColor,
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(7.0),
+                                    borderSide:
+                                    BorderSide(color: primaryColor, width: 0.5),
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(7.0),
+                                    borderSide: BorderSide(
+                                      color: primaryColor,
+                                      width: 0.5,
+                                    ),
+                                  ),
+                                  hintText: "",
+                                  floatingLabelBehavior:
+                                  FloatingLabelBehavior.always,
+                                ),
+                              ),
+                            ],
+                          ),
+
+
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Discount Category",
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyText1!
+                                    .apply(color: Colors.black),
+                              ),
+                              TextFormField(
+                                controller: _discountCategoryController,
+                                style: TextStyle(color: Colors.black),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please enter some text';
+                                  }
+                                  return null;
+                                },
+                                decoration: InputDecoration(
+                                  contentPadding: EdgeInsets.all(15),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(7.0),
+                                    borderSide: BorderSide(
+                                      color: primaryColor,
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(7.0),
+                                    borderSide:
+                                    BorderSide(color: primaryColor, width: 0.5),
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(7.0),
+                                    borderSide: BorderSide(
+                                      color: primaryColor,
+                                      width: 0.5,
+                                    ),
+                                  ),
+                                  hintText: "",
+                                  floatingLabelBehavior:
+                                  FloatingLabelBehavior.always,
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 10,),
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Discount Name",
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyText1!
+                                    .apply(color: Colors.black),
+                              ),
+                              TextFormField(
+                                controller: _discountNameController,
+                                style: TextStyle(color: Colors.black),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please enter some text';
+                                  }
+                                  return null;
+                                },
+                                decoration: InputDecoration(
+                                  contentPadding: EdgeInsets.all(15),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(7.0),
+                                    borderSide: BorderSide(
+                                      color: primaryColor,
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(7.0),
+                                    borderSide:
+                                    BorderSide(color: primaryColor, width: 0.5),
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(7.0),
+                                    borderSide: BorderSide(
+                                      color: primaryColor,
+                                      width: 0.5,
+                                    ),
+                                  ),
+                                  hintText: "",
+                                  floatingLabelBehavior:
+                                  FloatingLabelBehavior.always,
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 10,),
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Final Amount",
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyText1!
+                                    .apply(color: Colors.black),
+                              ),
+                              TextFormField(
+                                controller: _finalAmountController,
+                                style: TextStyle(color: Colors.black),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please enter some text';
+                                  }
+                                  return null;
+                                },
+                                decoration: InputDecoration(
+                                  contentPadding: EdgeInsets.all(15),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(7.0),
+                                    borderSide: BorderSide(
+                                      color: primaryColor,
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(7.0),
+                                    borderSide:
+                                    BorderSide(color: primaryColor, width: 0.5),
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(7.0),
+                                    borderSide: BorderSide(
+                                      color: primaryColor,
+                                      width: 0.5,
+                                    ),
+                                  ),
+                                  hintText: "",
+                                  floatingLabelBehavior:
+                                  FloatingLabelBehavior.always,
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          SizedBox(height: 15,),
+                          InkWell(
+                            onTap: (){
+                              int cash=0,visa=0,bank=0;
+
+                              int paid=model.amountPaid;
+                              int due=model.amountDue;
+
+                              if(_cashontroller.text!="")
+                                cash=int.parse(_cashontroller.text);
+                              if(_visaController.text!="")
+                                visa=int.parse(_cashontroller.text);
+                              if(_bankController.text!="")
+                                bank=int.parse(_cashontroller.text);
+
+                              int totalPaid=cash+visa+bank;
+                              paid=paid+totalPaid;
+                              due=due-totalPaid;
+
+                              String status=model.status;
+                              if(model.status=="Not Paid"){
+                                status="Paid";
+                              }
+
+
+                              FirebaseFirestore.instance.collection('payment_info').doc(paymentInfoModel.id).update({
+                                'amountPaid': paid,
+                                'status':status,
+                                'amountDue': due,
+                                'cashPayment': cash,
+                                'visaPayment': visa,
+                                'masterCardPayment': bank,
+                                'message':_messageController.text,
+
+                                'depositorName':_depositorNameController.text!=""?paymentInfoModel.depositorName:_depositorNameController.text,
+                                'visaPaymentDate':_visaPaymentDateController.text!=""?paymentInfoModel.visaPaymentDate:_visaPaymentDateController.text,
+                                'bankPaymentDate':_bankPaymentDateController.text!=""?paymentInfoModel.bankPaymentDate:_bankPaymentDateController.text,
+                                'receiptNumber':_receiptNumberController.text!=""?paymentInfoModel.receiptNumber:_receiptNumberController.text,
+                                'bankReceiptNumber':_bankReceiptNumberController.text!=""?paymentInfoModel.bankReceiptNumber:_bankReceiptNumberController.text,
+                                'image':imageUrl,
+                                'discountCategory':_discountCategoryController.text!=""?paymentInfoModel.discountCategory:_discountCategoryController.text,
+                                'discountName':_discountNameController.text!=""?paymentInfoModel.discountName:_discountNameController,
+                                'finalAmount':_finalAmountController.text!=""?paymentInfoModel.finalAmount:_finalAmountController.text,
+                              });
+
+                              FirebaseFirestore.instance.collection('fees').doc(model.id).update({
+                                'amountPaid': paid,
+                                'status':status,
+                                'amountDue': due,
+                                'cashPayment': cash,
+                                'visaPayment': visa,
+                                'masterCardPayment': bank,
+                                'message':_messageController.text
+                              }).then((value) => Navigator.pop(context));
+
+
+                            },
+                            child: Container(
+                              height: 50,
+                              color: Colors.black,
+                              alignment: Alignment.center,
+                              child: Text("submit",style: Theme.of(context).textTheme.button!.apply(color: Colors.white),),
+                            ),
+                          )
+
+
+
+                        ],
+                      ),
+                    )
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
   DataRow _buildListItem(BuildContext context, DocumentSnapshot data) {
     final model = FeeModel.fromSnapshot(data);
     return DataRow(
@@ -2834,14 +3838,31 @@ class _RevenueListState extends State<RevenueList> {
           DataCell(Text(model.fees.toString())),
           DataCell(Text(model.fromDate.toString())),
           DataCell(Text(model.status.toString()),onTap: (){
-            if(role=="Accountant"){
-              _showChangeStatusDialog(model, context);
+            //role=="Accountant"
+            _showChangeStatusDialog(model, context);
+            if(model.feeCategory=="Uniform Fees"){
+
             }
           }),
-          DataCell(Text("View"),onTap: (){
+          DataCell(Text("View"),onTap: ()async{
             if(model.message!="none")
               _messageController.text=model.message;
-            _showPaymentInfoDialog(model);
+            if(model.feeCategory=="Uniform Fees"){
+              PaymentInfoModel? paymentInfoModel;
+              await FirebaseFirestore.instance.collection('payment_info').where("itemId",isEqualTo: model.itemId).get()
+                  .then((QuerySnapshot querySnapshot) {
+                querySnapshot.docs.forEach((doc) {
+                  Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+
+                  paymentInfoModel=PaymentInfoModel.fromMap(data,doc.reference.id);
+
+                });
+              });
+              _showUniformPaymentInfoDialog(model,paymentInfoModel!);
+            }
+
+            else
+              _showPaymentInfoDialog(model);
           }),
           DataCell(Row(
             children: [

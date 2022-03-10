@@ -506,7 +506,10 @@ class _GradesState extends State<Grades> {
                       InkWell(
                         onTap: (){
                           print("tap");
-                          add(schoolId,departmentId);
+                          if (_formKey.currentState!.validate()) {
+                            add(schoolId,departmentId);
+                          }
+
                         },
                         child: Container(
                           height: 50,
@@ -585,4 +588,5 @@ class _GradesState extends State<Grades> {
       ),
     );
   }
+
 }

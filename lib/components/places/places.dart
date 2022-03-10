@@ -439,8 +439,7 @@ class _PlacesState extends State<Places> {
                                           child: Container(
                                             width: MediaQuery.of(context).size.width*0.3,
                                             child: StreamBuilder<QuerySnapshot>(
-                                              stream: FirebaseFirestore.instance.collection('place_categories')
-                                                  .where('mainCategoryId',isEqualTo:_mainCategoryId).snapshots(),
+                                              stream: FirebaseFirestore.instance.collection('place_categories').snapshots(),
                                               builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
                                                 if (snapshot.hasError) {
                                                   return Center(
@@ -481,18 +480,11 @@ class _PlacesState extends State<Places> {
                                                       padding: const EdgeInsets.all(15.0),
                                                       child: ListTile(
                                                         onTap: (){
-                                                          if(data["isSubCategory"]==true){
-                                                            setState(() {
-                                                              _mainCategoryId=document.reference.id;
-                                                            });
-                                                          }
-                                                          else{
-                                                            setState(() {
-                                                              _categoryController.text="${data['name']}";
-                                                              _categoryId=document.reference.id;
-                                                            });
-                                                            Navigator.pop(context);
-                                                          }
+                                                          setState(() {
+                                                            _categoryController.text="${data['name']}";
+                                                            _categoryId=document.reference.id;
+                                                          });
+                                                          Navigator.pop(context);
 
                                                         },
 

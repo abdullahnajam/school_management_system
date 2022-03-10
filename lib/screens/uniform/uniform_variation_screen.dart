@@ -12,6 +12,10 @@ import 'package:school_management_system/utils/responsive.dart';
 
 class UniformVariationScreen extends StatelessWidget {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  String itemId;
+
+  UniformVariationScreen(this.itemId);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -31,7 +35,7 @@ class UniformVariationScreen extends StatelessWidget {
             Expanded(
               // It takes 5/6 part of the screen
               flex: 5,
-              child: UniformVariation(_scaffoldKey),
+              child: UniformVariation(_scaffoldKey,itemId),
             ),
           ],
         ),

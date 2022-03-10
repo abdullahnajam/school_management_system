@@ -2,8 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AdminModel{
   String id,username,email,role,roleId;
+  bool addAdmin;
 
-  AdminModel(this.id, this.username, this.email,this.role, this.roleId);
+  AdminModel(this.id, this.username, this.email,this.role, this.roleId,this.addAdmin);
 
   AdminModel.fromMap(Map<String,dynamic> map,String key)
       : id=key,
@@ -11,6 +12,8 @@ class AdminModel{
         email = map['email'],
 
         role = map['role'],
+        addAdmin = map['addAdmin'],
+
 
         roleId = map['roleId'];
 

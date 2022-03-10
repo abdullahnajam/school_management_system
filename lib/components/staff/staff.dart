@@ -34,6 +34,8 @@ class _StaffState extends State<Staff> {
   var departmentController=TextEditingController();
   var _subjectController=TextEditingController();
 
+
+
   add(String schoolId,departmentId,subjectId,placeId) async{
     final ProgressDialog pr = ProgressDialog(context: context);
     pr.show(max: 100, msg: "Adding");
@@ -117,6 +119,54 @@ class _StaffState extends State<Staff> {
                       Expanded(
                         child: ListView(
                           children: [
+                            Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Name",
+                                  style: Theme.of(context).textTheme.bodyText1!.apply(color: Colors.black),
+                                ),
+                                TextFormField(
+
+                                  controller: _nameController,
+                                  style: TextStyle(color: Colors.black),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Please enter some text';
+                                    }
+                                    return null;
+                                  },
+                                  decoration: InputDecoration(
+                                    contentPadding: EdgeInsets.all(15),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(7.0),
+                                      borderSide: BorderSide(
+                                        color: primaryColor,
+                                      ),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(7.0),
+                                      borderSide: BorderSide(
+                                          color: primaryColor,
+                                          width: 0.5
+                                      ),
+                                    ),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(7.0),
+                                      borderSide: BorderSide(
+                                        color: primaryColor,
+                                        width: 0.5,
+                                      ),
+                                    ),
+                                    hintText: "",
+                                    floatingLabelBehavior: FloatingLabelBehavior.always,
+                                  ),
+                                ),
+
+                              ],
+                            ),
+                            SizedBox(height: 10,),
                             Column(
                               mainAxisSize: MainAxisSize.min,
                               crossAxisAlignment: CrossAxisAlignment.start,

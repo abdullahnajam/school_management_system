@@ -42,41 +42,32 @@ class _RoleSidebarState extends State<RoleSidebar> {
     false,
     false,
     false,
-    false,
-    false,
-    false,
     false
   ];
   List<String> screens=[
-    "Bookings",
-    "Admins",
-    "Customers",
-    "Categories",
-    "Services",
-    "Gender",
-    "Branches",
-    "Specialists",
-    "Offers",
-    "Promo Codes",
-    "Reviews",
-    "Notifications",
-    "Questionnaire",
-    "About Us",
+    "Administration",
+    "Academic",
+    "Teachers",
+    "Employees",
+    "Staff",
+    "Students",
+    "Parents",
+    "Book Center",
+    "Uniform Center",
+    "Supply Center",
     "Slider Banner",
-    "Settings",
-    "Popup Ads",
-    "Portrait Banners",
+    "School Busses",
+    "Activity",
+    "Transfer",
     "Club Points",
-    "Web Data",
+    "Financial",
     "Expenses",
-    "Off Days",
-    "Places",
-    "Reports"
+    "School Revenue",
+    "Expenses",
+    "Reports",
+    "Places"
   ];
   List<bool> selected=[
-    false,
-    false,
-    false,
     false,
     false,
     false,
@@ -105,14 +96,14 @@ class _RoleSidebarState extends State<RoleSidebar> {
     print("rr");
     List<String> selectedScreens=[];
     final ProgressDialog pr = ProgressDialog(context: context);
-    /*for(int i=0;i<selected.length;i++){
+    for(int i=0;i<selected.length;i++){
       if(selected[i])
         selectedScreens.add(screens[i]);
-    }*/
+    }
     pr.show(max: 100, msg: "Adding");
     FirebaseFirestore.instance.collection('roles').add({
       'role': roleController.text,
-      'access': "access",
+      'access': selectedScreens,
     }).then((value) {
       pr.close();
       print("added");
@@ -219,7 +210,27 @@ class _RoleSidebarState extends State<RoleSidebar> {
 
                         ],
                       ),
+                      Container(
+                        height: MediaQuery.of(context).size.height*0.6,
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          //scrollDirection: Axis.horizontal,
+                          itemCount: screens.length,
+                          itemBuilder: (BuildContext context,int index){
+                            return CheckboxListTile(
+                                title: Text(screens[index],style: TextStyle(color: Colors.black),),
+                                value: selected[index],
+                                activeColor: Colors.brown,
+                                onChanged: (bool? value){
+                                  setState(() {
+                                    selected[index]=value!;
 
+                                  });
+                                }
+                            );
+                          },
+                        ),
+                      ),
 
                       SizedBox(height: 15,),
                       InkWell(
@@ -247,14 +258,14 @@ class _RoleSidebarState extends State<RoleSidebar> {
 
   Future<void> _showEditRoleDialog(RoleModel roleModel) async {
     roleEditController.text=roleModel.role;
-    /*access=roleModel.access;
+    access=roleModel.access;
     for(int i=0;i<screens.length;i++){
       if(access.contains(screens[i])){
         setState(() {
           editAccess[i]=true;
         });
       }
-    }*/
+    }
     final _formKey = GlobalKey<FormState>();
     return showDialog<void>(
       context: context,
@@ -352,20 +363,41 @@ class _RoleSidebarState extends State<RoleSidebar> {
 
                         ],
                       ),
+                      Container(
+                        height: MediaQuery.of(context).size.height*0.6,
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          //scrollDirection: Axis.horizontal,
+                          itemCount: screens.length,
+                          itemBuilder: (BuildContext context,int index){
+                            return CheckboxListTile(
+                                title: Text(screens[index],style: TextStyle(color: Colors.black),),
+                                value: editAccess[index],
+                                activeColor: Colors.brown,
+                                onChanged: (bool? value){
+                                  setState(() {
+                                    editAccess[index]=value!;
 
+                                  });
+                                }
+                            );
+                          },
+                        ),
+                      ),
                       SizedBox(height: 15,),
                       InkWell(
                         onTap: (){
-                          print("tap");
-                          //addRole();
                           print("rr");
-
+                          List<String> selectedScreens=[];
                           final ProgressDialog pr = ProgressDialog(context: context);
-
+                          for(int i=0;i<editAccess.length;i++){
+                            if(editAccess[i])
+                              selectedScreens.add(screens[i]);
+                          }
                           pr.show(max: 100, msg: "Adding");
                           FirebaseFirestore.instance.collection('roles').doc(roleModel.id).update({
                             'role': roleEditController.text,
-                            'access': "access",
+                            'access': selectedScreens,
                           }).then((value) {
                             pr.close();
                             print("added");
@@ -427,7 +459,7 @@ class _RoleSidebarState extends State<RoleSidebar> {
               margin: EdgeInsets.only(top: defaultPadding),
               padding: EdgeInsets.all(defaultPadding),
               child: Container(
-                height: MediaQuery.of(context).size.height*0.2,
+                height: MediaQuery.of(context).size.height*0.67,
                 child: StreamBuilder<QuerySnapshot>(
                   stream: FirebaseFirestore.instance.collection('roles').snapshots(),
                   builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {

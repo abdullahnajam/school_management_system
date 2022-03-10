@@ -61,6 +61,7 @@ class _SchoolFeesState extends State<SchoolFees> {
             'school': schoolController.text,
             'department': departmentController.text,
             'studentId': stdModel.id,
+            'itemId': value.id,
             'parentId':stdModel.parentId,
             'parent': stdModel.parent,
             'schoolId': schoolId,
@@ -447,7 +448,7 @@ class _SchoolFeesState extends State<SchoolFees> {
                                             width: MediaQuery.of(context).size.width*0.3,
                                             child: StreamBuilder<QuerySnapshot>(
                                               stream: FirebaseFirestore.instance.collection('grades')
-                                                  .where('departmentId',isEqualTo:departmentId).snapshots(),
+                                                  .where('department',isEqualTo:departmentController.text).snapshots(),
                                               builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
                                                 if (snapshot.hasError) {
                                                   return Center(

@@ -6,6 +6,7 @@ class FeeModel{
   int fees,dueDateInMilli,fromDateInMilli;
   String school,department,academicYear,grade,schoolId,departmentId,gradeId,message,className,classId;
   bool isArchived,isDiscountInPercentage;
+  String itemId;
   int amountPaid,amountDue,cashPayment,visaPayment,masterCardPayment;
   int datePosted;
 
@@ -14,9 +15,10 @@ class FeeModel{
   FeeModel.fromMap(Map<String,dynamic> map,String key)
       : id=key,
         amountDue = map['amountDue'],
+        itemId = map['itemId'],
         message = map['message'],
-        className = map['className'],
-        classId = map['classId'],
+        className = map['className']??"none",
+        classId = map['classId']??"none",
         amountPaid = map['amountPaid'],
         cashPayment = map['cashPayment'],
         visaPayment = map['visaPayment'],

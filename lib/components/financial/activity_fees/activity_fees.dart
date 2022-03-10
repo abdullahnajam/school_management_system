@@ -59,6 +59,7 @@ class _ActivityFeesState extends State<ActivityFees> {
           FirebaseFirestore.instance.collection('fees').add({
             'student': "${stdModel.firstName} ${stdModel.lastName}",
             'school': schoolController.text,
+            'itemId': value.id,
             'department': departmentController.text,
             'studentId': stdModel.id,
             'parentId':stdModel.parentId,

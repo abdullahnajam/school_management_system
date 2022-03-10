@@ -85,6 +85,7 @@ class _BusRouteState extends State<BusRoute> {
         FirebaseFirestore.instance.collection('fees').add({
           'student':"${studentData[i].firstName} ${studentData[i].lastName}",
           'school': studentData[i].school,
+          'itemId': value.id,
           'department': studentData[i].department,
           'studentId': studentData[i].id,
           'parentId': studentData[i].parentId,

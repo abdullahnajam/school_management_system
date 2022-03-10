@@ -2,15 +2,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class RoleModel{
   String id,role;
- // List access;
+  List access;
 
 
 
 
   RoleModel.fromMap(Map<String,dynamic> map,String key)
       : id=key,
-        role = map['role'];
-        //access = map['access'];
+        role = map['role'],
+        access = map['access']??[];
 
 
 

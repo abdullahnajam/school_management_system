@@ -86,15 +86,20 @@ class _UniformDeliveryListState extends State<UniformDeliveryList> {
                   columnSpacing: defaultPadding,
                   minWidth: 600,
                   columns: [
-
+                    DataColumn(
+                      label: Text("Products"),
+                    ),
                     DataColumn(
                       label: Text("Student"),
                     ),
                     DataColumn(
-                      label: Text("Item"),
+                      label: Text("Amount"),
                     ),
                     DataColumn(
-                      label: Text("Status"),
+                      label: Text("Delivery"),
+                    ),
+                    DataColumn(
+                      label: Text("Payment"),
                     ),
                     DataColumn(
                       label: Text("Actions"),
@@ -423,69 +428,6 @@ Future<void> _showChangeStatusDialog(UniformDeliveryModel model,BuildContext con
                         },
                         btnOkOnPress: () {
                           FirebaseFirestore.instance.collection('uniform_deliveries').doc(model.id).update({
-                            'status':"Pending"
-                          }).then((value) {
-
-                            Navigator.pop(context);
-
-                          }).onError((error, stackTrace) {
-                            var width;
-                            if(Responsive.isMobile(context)){
-                              width=MediaQuery.of(context).size.width*0.8;
-                            }
-                            else if(Responsive.isTablet(context)){
-                              width=MediaQuery.of(context).size.width*0.6;
-                            }
-                            else if(Responsive.isDesktop(context)){
-                              width=MediaQuery.of(context).size.width*0.3;
-                            }
-                            AwesomeDialog(
-                              width: width,
-                              context: context,
-                              dialogType: DialogType.ERROR,
-                              animType: AnimType.BOTTOMSLIDE,
-                              dialogBackgroundColor: secondaryColor,
-                              title: 'Error : Unable to change status',
-                              desc: '${error.toString()}',
-
-                              btnOkOnPress: () {
-                                Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => UniformDeliveryScreen()));
-
-                              },
-                            )..show();
-                          });
-                        },
-                      )..show();
-
-                    },
-                    title: Text("Pending",style: TextStyle(color: Colors.black),),
-                  ),
-                  Divider(color: Colors.grey,),
-                  ListTile(
-                    onTap: (){
-                      var width;
-                      if(Responsive.isMobile(context)){
-                        width=MediaQuery.of(context).size.width*0.8;
-                      }
-                      else if(Responsive.isTablet(context)){
-                        width=MediaQuery.of(context).size.width*0.6;
-                      }
-                      else if(Responsive.isDesktop(context)){
-                        width=MediaQuery.of(context).size.width*0.3;
-                      }
-                      AwesomeDialog(
-                        width: width,
-                        context: context,
-                        dialogType: DialogType.QUESTION,
-                        animType: AnimType.BOTTOMSLIDE,
-                        dialogBackgroundColor: secondaryColor,
-                        title: 'Change Status',
-                        desc: 'Are you sure you want to change status?',
-                        btnCancelOnPress: () {
-                          Navigator.pushReplacement(context, MaterialPageRoute(builder: (BuildContext context) => UniformDeliveryScreen()));
-                        },
-                        btnOkOnPress: () {
-                          FirebaseFirestore.instance.collection('uniform_deliveries').doc(model.id).update({
                             'status':"Ready to deliver"
                           }).then((value) {
 
@@ -601,11 +543,16 @@ DataRow _buildListItem(BuildContext context, DocumentSnapshot data) {
   final model = UniformDeliveryModel.fromSnapshot(data);
   return DataRow(
       cells: [
-    DataCell(Text(model.student)),
         DataCell(Text(model.item.length.toString())),
-        DataCell(Text(model.status,maxLines: 1),onTap: (){
-          _showChangeStatusDialog(model, context);
+        DataCell(Text(model.student)),
+        DataCell(Text(model.amount.toString())),
+        DataCell(Text(model.status),onTap: (){
+          if(model.status!="Pending"){
+            _showChangeStatusDialog(model, context);
+          }
+
         }),
+        DataCell(Text(model.payment,maxLines: 1),),
         DataCell(Row(
           children: [
             IconButton(

@@ -117,6 +117,7 @@ class _BookDeliveryState extends State<BookDelivery> {
                                           insetAnimationCurve: Curves.fastOutSlowIn,
                                           elevation: 2,
                                           child: Container(
+                                            height: MediaQuery.of(context).size.height,
                                             width: MediaQuery.of(context).size.width*0.3,
                                             child: Column(
                                               

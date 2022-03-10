@@ -95,9 +95,6 @@ class _SubjectListState extends State<SubjectList> {
                     DataColumn(
                       label: Text("Grade"),
                     ),
-                    DataColumn(
-                      label: Text("Class"),
-                    ),
 
 
                     DataColumn(
@@ -635,7 +632,7 @@ Future<void> _showEdit(BuildContext context,SubjectModel model) async {
                             ],
                           ),
                           SizedBox(height: 10,),
-                          Column(
+                          /*Column(
                             mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -762,7 +759,7 @@ Future<void> _showEdit(BuildContext context,SubjectModel model) async {
 
                             ],
                           ),
-                          SizedBox(height: 10,),
+                          SizedBox(height: 10,),*/
 
 
 
@@ -779,8 +776,8 @@ Future<void> _showEdit(BuildContext context,SubjectModel model) async {
                                 'department': departmentController.text,
                                 'grade': gradeController.text,
                                 'schoolId': schoolId,
-                                'classes': _classController.text,
-                                'classId': classId,
+                                /*'classes': _classController.text,
+                                'classId': classId,*/
                                 'gradeId': gradeId,
                                 'departmentId': departmentId,
                               }).then((value) {
@@ -818,7 +815,7 @@ DataRow _buildListItem(BuildContext context, DocumentSnapshot data) {
     DataCell(Text(model.school)),
         DataCell(Text(model.department)),
         DataCell(Text(model.grade)),
-        DataCell(Text(model.classes)),
+        //DataCell(Text(model.classes)),
 
         DataCell(Row(
           children: [

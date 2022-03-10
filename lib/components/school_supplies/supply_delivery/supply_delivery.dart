@@ -69,6 +69,7 @@ class _SupplyDeliveryState extends State<SupplyDelivery> {
         FirebaseFirestore.instance.collection('fees').add({
         'student': _studentController.text,
         'school': _schoolController.text,
+          'itemId': value.id,
         'department': _departmentController.text,
         'studentId': _studentId,
         'parentId': _parentId,

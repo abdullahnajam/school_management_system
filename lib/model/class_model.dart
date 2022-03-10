@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ClassModel{
-  String id,name,school,department,schoolId,departmentId,grade,gradeId;
+  String id,name,school,department,schoolId,departmentId,grade,gradeId,placeId,place;
   int maxCapacity,minCapacity;
   bool isArchived;
   int datePosted;
@@ -16,6 +16,8 @@ class ClassModel{
         schoolId = map['schoolId'],
         grade = map['grade'],
         gradeId = map['gradeId'],
+        place = map['place'],
+        placeId = map['placeId'],
         departmentId = map['departmentId'],
         maxCapacity = map['maxCapacity'],
         minCapacity = map['minCapacity'],

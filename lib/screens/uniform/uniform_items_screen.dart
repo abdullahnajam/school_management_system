@@ -12,6 +12,10 @@ import 'package:school_management_system/navigator/side_menu.dart';
 import 'package:school_management_system/utils/responsive.dart';
 
 class UniformItemsScreen extends StatelessWidget {
+  List<String> categories=[];
+
+  UniformItemsScreen(this.categories);
+
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   @override
   Widget build(BuildContext context) {
@@ -32,7 +36,7 @@ class UniformItemsScreen extends StatelessWidget {
             Expanded(
               // It takes 5/6 part of the screen
               flex: 5,
-              child: UniformItem(_scaffoldKey),
+              child: UniformItem(_scaffoldKey,categories),
             ),
           ],
         ),

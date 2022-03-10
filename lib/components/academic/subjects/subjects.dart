@@ -35,7 +35,7 @@ class _SubjectsState extends State<Subjects> {
       'department': departmentController.text,
       'grade': gradeController.text,
       'schoolId': schoolId,
-      'classes': _classController.text,
+      'classes': "none",
       'classId': classId,
       'gradeId': gradeId,
       'departmentId': departmentId,
@@ -538,7 +538,7 @@ class _SubjectsState extends State<Subjects> {
 
                         ],
                       ),
-                      SizedBox(height: 10,),
+                      /*SizedBox(height: 10,),
                       Column(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -666,13 +666,16 @@ class _SubjectsState extends State<Subjects> {
                           ),
 
                         ],
-                      ),
+                      ),*/
 
                       SizedBox(height: 15,),
                       InkWell(
                         onTap: (){
                           print("tap");
-                          add(schoolId,departmentId,gradeId,classId);
+
+                          if (_formKey.currentState!.validate()) {
+                            add(schoolId,departmentId,gradeId,classId);
+                          }
                         },
                         child: Container(
                           height: 50,

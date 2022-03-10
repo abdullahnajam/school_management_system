@@ -4,10 +4,12 @@ import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:school_management_system/components/academic/classes/class_list.dart';
 import 'package:school_management_system/components/student/parent_category_sidebar.dart';
 import 'package:school_management_system/components/student/student_list.dart';
 import 'package:school_management_system/model/codeModel.dart';
+import 'package:school_management_system/model/parent_model.dart';
 import 'package:school_management_system/model/student_model.dart';
 import 'package:school_management_system/screens/student_screen.dart';
 import 'package:school_management_system/utils/constants.dart';
@@ -20,8 +22,9 @@ import 'package:firebase_core/firebase_core.dart';
 class Students extends StatefulWidget {
 
   GlobalKey<ScaffoldState> _scaffoldKey;
+  String classId;
 
-  Students(this._scaffoldKey);
+  Students(this._scaffoldKey,this.classId);
 
   @override
   _StudentsState createState() => _StudentsState();
@@ -1206,7 +1209,6 @@ class _StudentsState extends State<Students> {
                                 children: [
 
                                   CheckboxListTile(
-
                                     title: const Text('Parent Already Registered?',style: TextStyle(color: Colors.black),),
                                     value: isParentRegistered,
                                     onChanged: (bool? value) {
@@ -1244,67 +1246,143 @@ class _StudentsState extends State<Students> {
                                                       insetAnimationCurve: Curves.fastOutSlowIn,
                                                       elevation: 2,
                                                       child: Container(
+                                                        height: MediaQuery.of(context).size.height,
                                                         width: MediaQuery.of(context).size.width*0.3,
-                                                        child: StreamBuilder<QuerySnapshot>(
-                                                          stream: FirebaseFirestore.instance.collection('parents').snapshots(),
-                                                          builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                                                            if (snapshot.hasError) {
-                                                              return Center(
-                                                                child: Column(
-                                                                  children: [
-                                                                    Image.asset("assets/images/wrong.png",width: 150,height: 150,),
-                                                                    Text("Something Went Wrong",style: TextStyle(color: Colors.black))
+                                                        child: Column(
+                                                          children: [
+                                                            Container(
+                                                              margin: EdgeInsets.all(10),
+                                                              child:TypeAheadField(
 
-                                                                  ],
-                                                                ),
-                                                              );
-                                                            }
-
-                                                            if (snapshot.connectionState == ConnectionState.waiting) {
-                                                              return Center(
-                                                                child: CircularProgressIndicator(),
-                                                              );
-                                                            }
-                                                            if (snapshot.data!.size==0){
-                                                              return Center(
-                                                                child: Column(
-                                                                  children: [
-                                                                    Image.asset("assets/images/empty.png",width: 150,height: 150,),
-                                                                    Text("No Parent Added",style: TextStyle(color: Colors.black))
-
-                                                                  ],
-                                                                ),
-                                                              );
-
-                                                            }
-
-                                                            return new ListView(
-                                                              shrinkWrap: true,
-                                                              children: snapshot.data!.docs.map((DocumentSnapshot document) {
-                                                                Map<String, dynamic> data = document.data() as Map<String, dynamic>;
-
-                                                                return new Padding(
-                                                                  padding: const EdgeInsets.all(15.0),
-                                                                  child: ListTile(
-                                                                    onTap: (){
-                                                                      setState(() {
-                                                                        _parentController.text="${data['firstName']} ${data['lastName']}";
-                                                                        parentId=document.reference.id;
-                                                                      });
-                                                                      Navigator.pop(context);
-                                                                    },
-                                                                    leading: CircleAvatar(
-                                                                      radius: 25,
-                                                                      backgroundImage: NetworkImage(data['photo']),
-                                                                      backgroundColor: Colors.indigoAccent,
-                                                                      foregroundColor: Colors.white,
+                                                                textFieldConfiguration: TextFieldConfiguration(
+                                                                  autofocus: false,
+                                                                  style: DefaultTextStyle.of(context).style,
+                                                                  decoration: InputDecoration(
+                                                                    contentPadding: EdgeInsets.all(15),
+                                                                    focusedBorder: OutlineInputBorder(
+                                                                      borderRadius: BorderRadius.circular(7.0),
+                                                                      borderSide: BorderSide(
+                                                                        color: primaryColor,
+                                                                      ),
                                                                     ),
-                                                                    title: Text("${data['firstName']} ${data['lastName']}",style: TextStyle(color: Colors.black),),
+                                                                    enabledBorder: OutlineInputBorder(
+                                                                      borderRadius: BorderRadius.circular(7.0),
+                                                                      borderSide:
+                                                                      BorderSide(color: primaryColor, width: 0.5),
+                                                                    ),
+                                                                    border: OutlineInputBorder(
+                                                                      borderRadius: BorderRadius.circular(7.0),
+                                                                      borderSide: BorderSide(
+                                                                        color: primaryColor,
+                                                                        width: 0.5,
+                                                                      ),
+                                                                    ),
+                                                                    hintText: "Search",
+                                                                    hintStyle: TextStyle(color: Colors.grey),
+                                                                    floatingLabelBehavior:
+                                                                    FloatingLabelBehavior.always,
                                                                   ),
-                                                                );
-                                                              }).toList(),
-                                                            );
-                                                          },
+                                                                ),
+                                                                suggestionsCallback: (pattern) async {
+                                                                  List<ParentModel> suggestion = [];
+                                                                  await FirebaseFirestore.instance.collection('parents').get().then((QuerySnapshot querySnapshot) {
+                                                                    querySnapshot.docs.forEach((doc) {
+                                                                      Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+                                                                      ParentModel model = ParentModel.fromMap(data, doc.reference.id);
+                                                                      if ("${model.firstName} ${model.lastName}".toLowerCase().contains(pattern.toLowerCase()))
+                                                                        suggestion.add(model);
+                                                                    });
+                                                                  });
+                                                                  return suggestion;
+                                                                },
+                                                                itemBuilder: (context, ParentModel suggestion) {
+                                                                  return ListTile(
+                                                                    leading: CircleAvatar(
+                                                                      backgroundImage:
+                                                                      NetworkImage(suggestion.photo),
+                                                                    ),
+                                                                    title: Text(
+                                                                      "${suggestion.firstName} ${suggestion.lastName}",
+                                                                      style: TextStyle(color: Colors.black),
+                                                                    ),
+                                                                    subtitle: Text(
+                                                                      suggestion.email,
+                                                                      style: TextStyle(color: Colors.black),
+                                                                    ),
+                                                                  );
+                                                                },
+                                                                onSuggestionSelected: (ParentModel suggestion) {
+                                                                  _parentController.text = "${suggestion.firstName} ${suggestion.lastName}";
+                                                                  parentId = suggestion.id;
+                                                                  Navigator.pop(context);
+                                                                },
+                                                              ),
+                                                            ),
+                                                            Expanded(
+
+                                                              child: StreamBuilder<QuerySnapshot>(
+                                                                stream: FirebaseFirestore.instance.collection('parents').snapshots(),
+                                                                builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                                                                  if (snapshot.hasError) {
+                                                                    return Center(
+                                                                      child: Column(
+                                                                        children: [
+                                                                          Image.asset("assets/images/wrong.png",width: 150,height: 150,),
+                                                                          Text("Something Went Wrong",style: TextStyle(color: Colors.black))
+
+                                                                        ],
+                                                                      ),
+                                                                    );
+                                                                  }
+
+                                                                  if (snapshot.connectionState == ConnectionState.waiting) {
+                                                                    return Center(
+                                                                      child: CircularProgressIndicator(),
+                                                                    );
+                                                                  }
+                                                                  if (snapshot.data!.size==0){
+                                                                    return Center(
+                                                                      child: Column(
+                                                                        children: [
+                                                                          Image.asset("assets/images/empty.png",width: 150,height: 150,),
+                                                                          Text("No Parent Added",style: TextStyle(color: Colors.black))
+
+                                                                        ],
+                                                                      ),
+                                                                    );
+
+                                                                  }
+
+                                                                  return new ListView(
+                                                                    shrinkWrap: true,
+                                                                    children: snapshot.data!.docs.map((DocumentSnapshot document) {
+                                                                      Map<String, dynamic> data = document.data() as Map<String, dynamic>;
+
+                                                                      return new Padding(
+                                                                        padding: const EdgeInsets.all(15.0),
+                                                                        child: ListTile(
+                                                                          onTap: (){
+                                                                            setState(() {
+                                                                              _parentController.text="${data['firstName']} ${data['lastName']}";
+                                                                              parentId=document.reference.id;
+                                                                            });
+                                                                            Navigator.pop(context);
+                                                                          },
+                                                                          leading: CircleAvatar(
+                                                                            radius: 25,
+                                                                            backgroundImage: NetworkImage(data['photo']),
+                                                                            backgroundColor: Colors.indigoAccent,
+                                                                            foregroundColor: Colors.white,
+                                                                          ),
+                                                                          title: Text("${data['firstName']} ${data['lastName']}",style: TextStyle(color: Colors.black),),
+                                                                        ),
+                                                                      );
+                                                                    }).toList(),
+                                                                  );
+                                                                },
+                                                              ),
+                                                            ),
+                                                          ],
                                                         ),
                                                       ),
                                                     );
@@ -1798,21 +1876,21 @@ class _StudentsState extends State<Students> {
                       ),
 
                       SizedBox(height: defaultPadding),
-                      StudentList(),
+                      StudentList(widget.classId),
                       if (Responsive.isMobile(context))
                         SizedBox(height: defaultPadding),
-                      if (Responsive.isMobile(context)) ParentSidebar(),
+                      //if (Responsive.isMobile(context)) ParentSidebar(),
                     ],
                   ),
                 ),
                 if (!Responsive.isMobile(context))
                   SizedBox(width: defaultPadding),
-                if (!Responsive.isMobile(context))
+               /* if (!Responsive.isMobile(context))
                   Expanded(
                     flex: 2,
                     child: ParentSidebar(),
                   ),
-
+*/
 
               ],
             )

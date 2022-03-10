@@ -126,12 +126,15 @@ List<DataRow> _buildList(BuildContext context, List<DocumentSnapshot> snapshot) 
 var nameController=TextEditingController();
 var schoolController=TextEditingController();
 var departmentController=TextEditingController();
+var categoryController=TextEditingController();
+var placeController=TextEditingController();
 var gradeController=TextEditingController();
 var maxController=TextEditingController();
 var minController=TextEditingController();
 
 Future<void> _showEdit(BuildContext context,ClassModel model) async {
   String schoolId=model.schoolId;
+  String placeId=model.placeId;
   String departmentId=model.departmentId;
   String gradeId=model.gradeId;
   return showDialog<void>(
@@ -145,6 +148,8 @@ Future<void> _showEdit(BuildContext context,ClassModel model) async {
           nameController.text=model.name;
           schoolController.text=model.school;
           gradeController.text=model.grade;
+          placeController.text=model.place;
+
           departmentController.text=model.department;
           maxController.text=model.maxCapacity.toString();
           minController.text=model.minCapacity.toString();
@@ -537,7 +542,8 @@ Future<void> _showEdit(BuildContext context,ClassModel model) async {
                                               child: Container(
                                                 width: MediaQuery.of(context).size.width*0.3,
                                                 child: StreamBuilder<QuerySnapshot>(
-                                                  stream: FirebaseFirestore.instance.collection('grades').snapshots(),
+                                                  stream: FirebaseFirestore.instance.collection('grades')
+                                                      .where('department',isEqualTo:departmentController.text).snapshots(),
                                                   builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
                                                     if (snapshot.hasError) {
                                                       return Center(
@@ -600,6 +606,264 @@ Future<void> _showEdit(BuildContext context,ClassModel model) async {
                                   );
                                 },
                                 controller: gradeController,
+                                style: TextStyle(color: Colors.black),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please enter some text';
+                                  }
+                                  return null;
+                                },
+                                decoration: InputDecoration(
+                                  contentPadding: EdgeInsets.all(15),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(7.0),
+                                    borderSide: BorderSide(
+                                      color: primaryColor,
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(7.0),
+                                    borderSide: BorderSide(
+                                        color: primaryColor,
+                                        width: 0.5
+                                    ),
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(7.0),
+                                    borderSide: BorderSide(
+                                      color: primaryColor,
+                                      width: 0.5,
+                                    ),
+                                  ),
+                                  hintText: "",
+                                  floatingLabelBehavior: FloatingLabelBehavior.always,
+                                ),
+                              ),
+
+                            ],
+                          ),
+                          SizedBox(height: 10,),
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Place Category",
+                                style: Theme.of(context).textTheme.bodyText1!.apply(color: Colors.black),
+                              ),
+                              TextFormField(
+                                readOnly: true,
+                                onTap: (){
+                                  showDialog(
+                                      context: context,
+                                      builder: (BuildContext context){
+                                        return StatefulBuilder(
+                                          builder: (context,setState){
+                                            return Dialog(
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: const BorderRadius.all(
+                                                  Radius.circular(10.0),
+                                                ),
+                                              ),
+                                              insetAnimationDuration: const Duration(seconds: 1),
+                                              insetAnimationCurve: Curves.fastOutSlowIn,
+                                              elevation: 2,
+                                              child: Container(
+                                                width: MediaQuery.of(context).size.width*0.3,
+                                                child: StreamBuilder<QuerySnapshot>(
+                                                  stream: FirebaseFirestore.instance.collection('place_categories')
+                                                      .where('school',isEqualTo:schoolController.text).snapshots(),
+                                                  builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                                                    if (snapshot.hasError) {
+                                                      return Center(
+                                                        child: Column(
+                                                          children: [
+                                                            Image.asset("assets/images/wrong.png",width: 150,height: 150,),
+                                                            Text("Something Went Wrong",style: TextStyle(color: Colors.black))
+
+                                                          ],
+                                                        ),
+                                                      );
+                                                    }
+
+                                                    if (snapshot.connectionState == ConnectionState.waiting) {
+                                                      return Center(
+                                                        child: CircularProgressIndicator(),
+                                                      );
+                                                    }
+                                                    if (snapshot.data!.size==0){
+                                                      return Center(
+                                                        child: Column(
+                                                          children: [
+                                                            Image.asset("assets/images/empty.png",width: 150,height: 150,),
+                                                            Text("No Categories Added",style: TextStyle(color: Colors.black))
+
+                                                          ],
+                                                        ),
+                                                      );
+
+                                                    }
+
+                                                    return new ListView(
+                                                      shrinkWrap: true,
+                                                      children: snapshot.data!.docs.map((DocumentSnapshot document) {
+                                                        Map<String, dynamic> data = document.data() as Map<String, dynamic>;
+
+                                                        return new Padding(
+                                                          padding: const EdgeInsets.all(15.0),
+                                                          child: ListTile(
+                                                            onTap: (){
+                                                              setState(() {
+                                                                categoryController.text="${data['name']}";
+                                                              });
+                                                              Navigator.pop(context);
+                                                            },
+
+                                                            title: Text("${data['name']}",style: TextStyle(color: Colors.black),),
+                                                          ),
+                                                        );
+                                                      }).toList(),
+                                                    );
+                                                  },
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        );
+                                      }
+                                  );
+                                },
+                                controller: categoryController,
+                                style: TextStyle(color: Colors.black),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please enter some text';
+                                  }
+                                  return null;
+                                },
+                                decoration: InputDecoration(
+                                  contentPadding: EdgeInsets.all(15),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(7.0),
+                                    borderSide: BorderSide(
+                                      color: primaryColor,
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(7.0),
+                                    borderSide: BorderSide(
+                                        color: primaryColor,
+                                        width: 0.5
+                                    ),
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(7.0),
+                                    borderSide: BorderSide(
+                                      color: primaryColor,
+                                      width: 0.5,
+                                    ),
+                                  ),
+                                  hintText: "",
+                                  floatingLabelBehavior: FloatingLabelBehavior.always,
+                                ),
+                              ),
+
+                            ],
+                          ),
+                          SizedBox(height: 10,),
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Place",
+                                style: Theme.of(context).textTheme.bodyText1!.apply(color: Colors.black),
+                              ),
+                              TextFormField(
+                                readOnly: true,
+                                onTap: (){
+                                  showDialog(
+                                      context: context,
+                                      builder: (BuildContext context){
+                                        return StatefulBuilder(
+                                          builder: (context,setState){
+                                            return Dialog(
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: const BorderRadius.all(
+                                                  Radius.circular(10.0),
+                                                ),
+                                              ),
+                                              insetAnimationDuration: const Duration(seconds: 1),
+                                              insetAnimationCurve: Curves.fastOutSlowIn,
+                                              elevation: 2,
+                                              child: Container(
+                                                width: MediaQuery.of(context).size.width*0.3,
+                                                child: StreamBuilder<QuerySnapshot>(
+                                                  stream: FirebaseFirestore.instance.collection('places')
+                                                      .where('department',isEqualTo:departmentController.text)
+                                                      .where('category',isEqualTo:categoryController.text).snapshots(),
+                                                  builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                                                    if (snapshot.hasError) {
+                                                      return Center(
+                                                        child: Column(
+                                                          children: [
+                                                            Image.asset("assets/images/wrong.png",width: 150,height: 150,),
+                                                            Text("Something Went Wrong",style: TextStyle(color: Colors.black))
+
+                                                          ],
+                                                        ),
+                                                      );
+                                                    }
+
+                                                    if (snapshot.connectionState == ConnectionState.waiting) {
+                                                      return Center(
+                                                        child: CircularProgressIndicator(),
+                                                      );
+                                                    }
+                                                    if (snapshot.data!.size==0){
+                                                      return Center(
+                                                        child: Column(
+                                                          children: [
+                                                            Image.asset("assets/images/empty.png",width: 150,height: 150,),
+                                                            Text("No Places Added",style: TextStyle(color: Colors.black))
+
+                                                          ],
+                                                        ),
+                                                      );
+
+                                                    }
+
+                                                    return new ListView(
+                                                      shrinkWrap: true,
+                                                      children: snapshot.data!.docs.map((DocumentSnapshot document) {
+                                                        Map<String, dynamic> data = document.data() as Map<String, dynamic>;
+
+                                                        return new Padding(
+                                                          padding: const EdgeInsets.all(15.0),
+                                                          child: ListTile(
+                                                            onTap: (){
+                                                              setState(() {
+                                                                placeController.text="${data['name']}";
+                                                                placeId=document.reference.id;
+                                                              });
+                                                              Navigator.pop(context);
+                                                            },
+
+                                                            title: Text("${data['name']}",style: TextStyle(color: Colors.black),),
+                                                          ),
+                                                        );
+                                                      }).toList(),
+                                                    );
+                                                  },
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        );
+                                      }
+                                  );
+                                },
+                                controller: placeController,
                                 style: TextStyle(color: Colors.black),
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
@@ -749,6 +1013,8 @@ Future<void> _showEdit(BuildContext context,ClassModel model) async {
                                 'schoolId': schoolId,
                                 'gradeId': gradeId,
                                 'departmentId': departmentId,
+                                'place': placeController.text,
+                                'placeId': placeId,
                               }).then((value) {
                                 pr.close();
                                 print("added");

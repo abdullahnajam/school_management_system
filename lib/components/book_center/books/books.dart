@@ -29,7 +29,12 @@ class _BooksState extends State<Books> {
   var _stockController=TextEditingController();
   var _subjectController=TextEditingController();
   var _costController=TextEditingController();
+  var _supplierController=TextEditingController();
+  var schoolController=TextEditingController();
+  var departmentController=TextEditingController();
+  var gradeController=TextEditingController();
   String dropDownValue='Rent';
+  String edition='Teacher';
 
 
   add(String id) async{
@@ -40,6 +45,7 @@ class _BooksState extends State<Books> {
 
       'name': _nameController.text,
       'subject': _subjectController.text,
+      'edition': edition,
       'subjectID': id,
       'code': _codeController.text,
       'cost': int.parse(_costController.text),
@@ -56,6 +62,7 @@ class _BooksState extends State<Books> {
 
   Future<void> _showAddDialog() async {
     String _subjectId="";
+    String schoolId="",departmentId="",gradeId="",supplierId="";
     final _formKey = GlobalKey<FormState>();
     return showDialog<void>(
       context: context,
@@ -155,6 +162,398 @@ class _BooksState extends State<Books> {
 
                               ],
                             ),
+                            
+                            SizedBox(height: 10,),
+                            Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "School",
+                                  style: Theme.of(context).textTheme.bodyText1!.apply(color: Colors.black),
+                                ),
+                                TextFormField(
+                                  readOnly: true,
+                                  onTap: (){
+                                    showDialog(
+                                        context: context,
+                                        builder: (BuildContext context){
+                                          return StatefulBuilder(
+                                            builder: (context,setState){
+                                              return Dialog(
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius: const BorderRadius.all(
+                                                    Radius.circular(10.0),
+                                                  ),
+                                                ),
+                                                insetAnimationDuration: const Duration(seconds: 1),
+                                                insetAnimationCurve: Curves.fastOutSlowIn,
+                                                elevation: 2,
+                                                child: Container(
+                                                  width: MediaQuery.of(context).size.width*0.3,
+                                                  child: StreamBuilder<QuerySnapshot>(
+                                                    stream: FirebaseFirestore.instance.collection('schools').snapshots(),
+                                                    builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                                                      if (snapshot.hasError) {
+                                                        return Center(
+                                                          child: Column(
+                                                            children: [
+                                                              Image.asset("assets/images/wrong.png",width: 150,height: 150,),
+                                                              Text("Something Went Wrong",style: TextStyle(color: Colors.black))
+
+                                                            ],
+                                                          ),
+                                                        );
+                                                      }
+
+                                                      if (snapshot.connectionState == ConnectionState.waiting) {
+                                                        return Center(
+                                                          child: CircularProgressIndicator(),
+                                                        );
+                                                      }
+                                                      if (snapshot.data!.size==0){
+                                                        return Center(
+                                                          child: Column(
+                                                            children: [
+                                                              Image.asset("assets/images/empty.png",width: 150,height: 150,),
+                                                              Text("No Schools Added",style: TextStyle(color: Colors.black))
+
+                                                            ],
+                                                          ),
+                                                        );
+
+                                                      }
+
+                                                      return new ListView(
+                                                        shrinkWrap: true,
+                                                        children: snapshot.data!.docs.map((DocumentSnapshot document) {
+                                                          Map<String, dynamic> data = document.data() as Map<String, dynamic>;
+
+                                                          return new Padding(
+                                                            padding: const EdgeInsets.all(15.0),
+                                                            child: ListTile(
+                                                              onTap: (){
+                                                                setState(() {
+                                                                  schoolController.text="${data['name']}";
+                                                                  schoolId=document.reference.id;
+                                                                });
+                                                                Navigator.pop(context);
+                                                              },
+                                                              leading: CircleAvatar(
+                                                                radius: 25,
+                                                                backgroundImage: NetworkImage(data['logo']),
+                                                                backgroundColor: Colors.indigoAccent,
+                                                                foregroundColor: Colors.white,
+                                                              ),
+                                                              title: Text("${data['name']}",style: TextStyle(color: Colors.black),),
+                                                            ),
+                                                          );
+                                                        }).toList(),
+                                                      );
+                                                    },
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          );
+                                        }
+                                    );
+                                  },
+                                  controller: schoolController,
+                                  style: TextStyle(color: Colors.black),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Please enter some text';
+                                    }
+                                    return null;
+                                  },
+                                  decoration: InputDecoration(
+                                    contentPadding: EdgeInsets.all(15),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(7.0),
+                                      borderSide: BorderSide(
+                                        color: primaryColor,
+                                      ),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(7.0),
+                                      borderSide: BorderSide(
+                                          color: primaryColor,
+                                          width: 0.5
+                                      ),
+                                    ),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(7.0),
+                                      borderSide: BorderSide(
+                                        color: primaryColor,
+                                        width: 0.5,
+                                      ),
+                                    ),
+                                    hintText: "",
+                                    floatingLabelBehavior: FloatingLabelBehavior.always,
+                                  ),
+                                ),
+
+                              ],
+                            ),
+                            SizedBox(height: 10,),
+                            Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Department",
+                                  style: Theme.of(context).textTheme.bodyText1!.apply(color: Colors.black),
+                                ),
+                                TextFormField(
+                                  readOnly: true,
+                                  onTap: (){
+                                    showDialog(
+                                        context: context,
+                                        builder: (BuildContext context){
+                                          return StatefulBuilder(
+                                            builder: (context,setState){
+                                              return Dialog(
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius: const BorderRadius.all(
+                                                    Radius.circular(10.0),
+                                                  ),
+                                                ),
+                                                insetAnimationDuration: const Duration(seconds: 1),
+                                                insetAnimationCurve: Curves.fastOutSlowIn,
+                                                elevation: 2,
+                                                child: Container(
+                                                  width: MediaQuery.of(context).size.width*0.3,
+                                                  child: StreamBuilder<QuerySnapshot>(
+                                                    stream: FirebaseFirestore.instance.collection('departments')
+                                                        .where('schoolName',isEqualTo:schoolController.text).snapshots(),
+                                                    builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                                                      if (snapshot.hasError) {
+                                                        return Center(
+                                                          child: Column(
+                                                            children: [
+                                                              Image.asset("assets/images/wrong.png",width: 150,height: 150,),
+                                                              Text("Something Went Wrong",style: TextStyle(color: Colors.black))
+
+                                                            ],
+                                                          ),
+                                                        );
+                                                      }
+
+                                                      if (snapshot.connectionState == ConnectionState.waiting) {
+                                                        return Center(
+                                                          child: CircularProgressIndicator(),
+                                                        );
+                                                      }
+                                                      if (snapshot.data!.size==0){
+                                                        return Center(
+                                                          child: Column(
+                                                            children: [
+                                                              Image.asset("assets/images/empty.png",width: 150,height: 150,),
+                                                              Text("No Departments Added",style: TextStyle(color: Colors.black))
+
+                                                            ],
+                                                          ),
+                                                        );
+
+                                                      }
+
+                                                      return new ListView(
+                                                        shrinkWrap: true,
+                                                        children: snapshot.data!.docs.map((DocumentSnapshot document) {
+                                                          Map<String, dynamic> data = document.data() as Map<String, dynamic>;
+
+                                                          return new Padding(
+                                                            padding: const EdgeInsets.all(15.0),
+                                                            child: ListTile(
+                                                              onTap: (){
+                                                                setState(() {
+                                                                  departmentController.text="${data['name']}";
+                                                                  departmentId=document.reference.id;
+                                                                });
+                                                                Navigator.pop(context);
+                                                              },
+
+                                                              title: Text("${data['name']}",style: TextStyle(color: Colors.black),),
+                                                            ),
+                                                          );
+                                                        }).toList(),
+                                                      );
+                                                    },
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          );
+                                        }
+                                    );
+                                  },
+                                  controller: departmentController,
+                                  style: TextStyle(color: Colors.black),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Please enter some text';
+                                    }
+                                    return null;
+                                  },
+                                  decoration: InputDecoration(
+                                    contentPadding: EdgeInsets.all(15),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(7.0),
+                                      borderSide: BorderSide(
+                                        color: primaryColor,
+                                      ),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(7.0),
+                                      borderSide: BorderSide(
+                                          color: primaryColor,
+                                          width: 0.5
+                                      ),
+                                    ),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(7.0),
+                                      borderSide: BorderSide(
+                                        color: primaryColor,
+                                        width: 0.5,
+                                      ),
+                                    ),
+                                    hintText: "",
+                                    floatingLabelBehavior: FloatingLabelBehavior.always,
+                                  ),
+                                ),
+
+                              ],
+                            ),
+                            SizedBox(height: 10,),
+                            Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Grade",
+                                  style: Theme.of(context).textTheme.bodyText1!.apply(color: Colors.black),
+                                ),
+                                TextFormField(
+                                  readOnly: true,
+                                  onTap: (){
+                                    showDialog(
+                                        context: context,
+                                        builder: (BuildContext context){
+                                          return StatefulBuilder(
+                                            builder: (context,setState){
+                                              return Dialog(
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius: const BorderRadius.all(
+                                                    Radius.circular(10.0),
+                                                  ),
+                                                ),
+                                                insetAnimationDuration: const Duration(seconds: 1),
+                                                insetAnimationCurve: Curves.fastOutSlowIn,
+                                                elevation: 2,
+                                                child: Container(
+                                                  width: MediaQuery.of(context).size.width*0.3,
+                                                  child: StreamBuilder<QuerySnapshot>(
+                                                    stream: FirebaseFirestore.instance.collection('grades')
+                                                        .where('department',isEqualTo:departmentController.text).snapshots(),
+                                                    builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                                                      if (snapshot.hasError) {
+                                                        return Center(
+                                                          child: Column(
+                                                            children: [
+                                                              Image.asset("assets/images/wrong.png",width: 150,height: 150,),
+                                                              Text("Something Went Wrong",style: TextStyle(color: Colors.black))
+
+                                                            ],
+                                                          ),
+                                                        );
+                                                      }
+
+                                                      if (snapshot.connectionState == ConnectionState.waiting) {
+                                                        return Center(
+                                                          child: CircularProgressIndicator(),
+                                                        );
+                                                      }
+                                                      if (snapshot.data!.size==0){
+                                                        return Center(
+                                                          child: Column(
+                                                            children: [
+                                                              Image.asset("assets/images/empty.png",width: 150,height: 150,),
+                                                              Text("No Grade Added",style: TextStyle(color: Colors.black))
+
+                                                            ],
+                                                          ),
+                                                        );
+
+                                                      }
+
+                                                      return new ListView(
+                                                        shrinkWrap: true,
+                                                        children: snapshot.data!.docs.map((DocumentSnapshot document) {
+                                                          Map<String, dynamic> data = document.data() as Map<String, dynamic>;
+
+                                                          return new Padding(
+                                                            padding: const EdgeInsets.all(15.0),
+                                                            child: ListTile(
+                                                              onTap: (){
+                                                                setState(() {
+                                                                  gradeController.text="${data['name']}";
+                                                                  gradeId=document.reference.id;
+                                                                });
+                                                                Navigator.pop(context);
+                                                              },
+
+                                                              title: Text("${data['name']}",style: TextStyle(color: Colors.black),),
+                                                            ),
+                                                          );
+                                                        }).toList(),
+                                                      );
+                                                    },
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          );
+                                        }
+                                    );
+                                  },
+                                  controller: gradeController,
+                                  style: TextStyle(color: Colors.black),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Please enter some text';
+                                    }
+                                    return null;
+                                  },
+                                  decoration: InputDecoration(
+                                    contentPadding: EdgeInsets.all(15),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(7.0),
+                                      borderSide: BorderSide(
+                                        color: primaryColor,
+                                      ),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(7.0),
+                                      borderSide: BorderSide(
+                                          color: primaryColor,
+                                          width: 0.5
+                                      ),
+                                    ),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(7.0),
+                                      borderSide: BorderSide(
+                                        color: primaryColor,
+                                        width: 0.5,
+                                      ),
+                                    ),
+                                    hintText: "",
+                                    floatingLabelBehavior: FloatingLabelBehavior.always,
+                                  ),
+                                ),
+
+                              ],
+                            ),
                             SizedBox(height: 10,),
                             Column(
                               mainAxisSize: MainAxisSize.min,
@@ -184,7 +583,8 @@ class _BooksState extends State<Books> {
                                                 child: Container(
                                                   width: MediaQuery.of(context).size.width*0.3,
                                                   child: StreamBuilder<QuerySnapshot>(
-                                                    stream: FirebaseFirestore.instance.collection('subjects').snapshots(),
+                                                    stream: FirebaseFirestore.instance.collection('subjects')
+                                                        .where("grade",isEqualTo:gradeController.text).snapshots(),
                                                     builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
                                                       if (snapshot.hasError) {
                                                         return Center(
@@ -440,6 +840,7 @@ class _BooksState extends State<Books> {
                                       color: primaryColor,
                                     ),
                                   ),
+                                  padding: EdgeInsets.only(left: 10,right: 10),
                                   child: DropdownButton<String>(
                                     value: dropDownValue,
                                     icon: const Icon(Icons.keyboard_arrow_down),
@@ -467,7 +868,178 @@ class _BooksState extends State<Books> {
 
                               ],
                             ),
+                            SizedBox(height: 10,),
+                            Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Edition",
+                                  style: Theme.of(context).textTheme.bodyText1!.apply(color: Colors.black),
+                                ),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(7.0),
+                                    border: Border.all(
+                                      color: primaryColor,
+                                    ),
+                                  ),
+                                  padding: EdgeInsets.only(left: 10,right: 10),
+                                  child: DropdownButton<String>(
+                                    value: edition,
+                                    icon: const Icon(Icons.keyboard_arrow_down),
+                                    isExpanded: true,
+                                    elevation: 16,
+                                    style: const TextStyle(color: Colors.black),
+                                    underline: Container(),
+                                    onChanged: (String? newValue) {
+                                      setState(() {
+                                        edition = newValue!;
+                                      });
+                                    },
+                                    items: <String>[
+                                      'Teacher',
+                                      'Student'
+                                    ].map<DropdownMenuItem<String>>(
+                                            (String value) {
+                                          return DropdownMenuItem<String>(
+                                            value: value,
+                                            child: Text(value),
+                                          );
+                                        }).toList(),
+                                  ),
+                                )
 
+                              ],
+                            ),
+                            SizedBox(height: 10,),
+                            Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Supplier",
+                                  style: Theme.of(context).textTheme.bodyText1!.apply(color: Colors.black),
+                                ),
+                                TextFormField(
+                                  readOnly: true,
+                                  onTap: (){
+                                    showDialog(
+                                        context: context,
+                                        builder: (BuildContext context){
+                                          return StatefulBuilder(
+                                            builder: (context,setState){
+                                              return Dialog(
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius: const BorderRadius.all(
+                                                    Radius.circular(10.0),
+                                                  ),
+                                                ),
+                                                insetAnimationDuration: const Duration(seconds: 1),
+                                                insetAnimationCurve: Curves.fastOutSlowIn,
+                                                elevation: 2,
+                                                child: Container(
+                                                  width: MediaQuery.of(context).size.width*0.3,
+                                                  child: StreamBuilder<QuerySnapshot>(
+                                                    stream: FirebaseFirestore.instance.collection('book_suppliers').snapshots(),
+                                                    builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                                                      if (snapshot.hasError) {
+                                                        return Center(
+                                                          child: Column(
+                                                            children: [
+                                                              Image.asset("assets/images/wrong.png",width: 150,height: 150,),
+                                                              Text("Something Went Wrong",style: TextStyle(color: Colors.black))
+
+                                                            ],
+                                                          ),
+                                                        );
+                                                      }
+
+                                                      if (snapshot.connectionState == ConnectionState.waiting) {
+                                                        return Center(
+                                                          child: CircularProgressIndicator(),
+                                                        );
+                                                      }
+                                                      if (snapshot.data!.size==0){
+                                                        return Center(
+                                                          child: Column(
+                                                            children: [
+                                                              Image.asset("assets/images/empty.png",width: 150,height: 150,),
+                                                              Text("No Supplier Added",style: TextStyle(color: Colors.black))
+
+                                                            ],
+                                                          ),
+                                                        );
+
+                                                      }
+
+                                                      return new ListView(
+                                                        shrinkWrap: true,
+                                                        children: snapshot.data!.docs.map((DocumentSnapshot document) {
+                                                          Map<String, dynamic> data = document.data() as Map<String, dynamic>;
+
+                                                          return new Padding(
+                                                            padding: const EdgeInsets.all(15.0),
+                                                            child: ListTile(
+                                                              onTap: (){
+                                                                setState(() {
+                                                                  _supplierController.text="${data['name']}";
+                                                                  supplierId=document.reference.id;
+                                                                });
+                                                                Navigator.pop(context);
+                                                              },
+
+                                                              title: Text("${data['name']}",style: TextStyle(color: Colors.black),),
+                                                            ),
+                                                          );
+                                                        }).toList(),
+                                                      );
+                                                    },
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          );
+                                        }
+                                    );
+                                  },
+                                  controller: _supplierController,
+                                  style: TextStyle(color: Colors.black),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Please enter some text';
+                                    }
+                                    return null;
+                                  },
+                                  decoration: InputDecoration(
+                                    contentPadding: EdgeInsets.all(15),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(7.0),
+                                      borderSide: BorderSide(
+                                        color: primaryColor,
+                                      ),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(7.0),
+                                      borderSide: BorderSide(
+                                          color: primaryColor,
+                                          width: 0.5
+                                      ),
+                                    ),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(7.0),
+                                      borderSide: BorderSide(
+                                        color: primaryColor,
+                                        width: 0.5,
+                                      ),
+                                    ),
+                                    hintText: "",
+                                    floatingLabelBehavior: FloatingLabelBehavior.always,
+                                  ),
+                                ),
+
+                              ],
+                            ),
 
                             SizedBox(height: 15,),
                             InkWell(

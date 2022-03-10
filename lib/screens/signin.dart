@@ -6,6 +6,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:school_management_system/model/admin_model.dart';
+import 'package:school_management_system/provider/UserDataProvider.dart';
 import 'package:school_management_system/screens/academic/school_screen.dart';
 import 'package:school_management_system/utils/constants.dart';
 import 'package:school_management_system/utils/responsive.dart';
@@ -31,6 +34,31 @@ class _SignInState extends State<SignIn> {
   void _togglePasswordView() {
     setState(() {
       isPasswordHidden = !isPasswordHidden;
+    });
+  }
+  Future login()async{
+    final ProgressDialog pr = ProgressDialog(context: context);
+    print("email:${emailController.text.trim()}");
+    pr.show(max: 100, msg: "Please wait");
+    await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: emailController.text.trim(),
+        password: passwordController.text
+    ).then((value) async{
+      await FirebaseFirestore.instance.collection('admins').doc(value.user!.uid).get().then((DocumentSnapshot documentSnapshot) {
+        if (documentSnapshot.exists) {
+          Map<String, dynamic> data = documentSnapshot.data() as Map<String, dynamic>;
+          final provider = Provider.of<AdminProvider>(context, listen: false);
+          provider.setUserData(AdminModel.fromMap(data, documentSnapshot.reference.id));
+        }
+      });
+      pr.close();
+      Navigator.pushReplacement(context, new MaterialPageRoute(builder: (context) => SchoolScreen()));
+
+    }).onError((error, stackTrace){
+      pr.close();
+      print(emailController.text.trim());
+      print(error.toString());
+      _showErrorDialog(error.toString());
     });
   }
   Future<void> _showErrorDialog(String message){
@@ -327,38 +355,9 @@ class _SignInState extends State<SignIn> {
               SizedBox(height: 20,),
               InkWell(
                 onTap: ()async{
-                  final ProgressDialog pr = ProgressDialog(context: context);
-                  if (_formKey.currentState!.validate()) {
-                    try {
-                      print("email:${emailController.text.trim()}");
-                      pr.show(max: 100, msg: "Please wait");
-                      await FirebaseAuth.instance.signInWithEmailAndPassword(
-                          email: emailController.text.trim(),
-                          password: passwordController.text
-                      ).then((value) {
-                        pr.close();
-                        Navigator.pushReplacement(context, new MaterialPageRoute(builder: (context) => SchoolScreen()));
 
-                      }).onError((error, stackTrace){
-                        pr.close();
-                        print(emailController.text.trim());
-                        print(error.toString());
-                        _showErrorDialog(error.toString());
-                      });
-                    } on FirebaseAuthException catch (e) {
-                      if (e.code == 'user-not-found') {
-                        pr.close();
-                        print('No user found for that email.');
-                        _showErrorDialog("No user found for that email.");
-                      } else if (e.code == 'wrong-password') {
-                        pr.close();
-                        print('Wrong password provided for that user.');
-                        _showErrorDialog("Wrong password provided for that user.");
-                      }
-                      else{
-                        _showErrorDialog(e.message.toString());
-                      }
-                    }
+                  if (_formKey.currentState!.validate()) {
+                    login();
                   }
                 },
                 child: Container(
@@ -495,38 +494,9 @@ class _SignInState extends State<SignIn> {
                   SizedBox(height: 20,),
                   InkWell(
                     onTap: ()async{
-                      final ProgressDialog pr = ProgressDialog(context: context);
-                      if (_formKey.currentState!.validate()) {
-                        try {
-                          print("email:${emailController.text.trim()}");
-                          pr.show(max: 100, msg: "Please wait");
-                          await FirebaseAuth.instance.signInWithEmailAndPassword(
-                              email: emailController.text.trim(),
-                              password: passwordController.text
-                          ).then((value) {
-                            pr.close();
-                            Navigator.pushReplacement(context, new MaterialPageRoute(builder: (context) => SchoolScreen()));
 
-                          }).onError((error, stackTrace){
-                            pr.close();
-                            print(emailController.text.trim());
-                            print(error.toString());
-                            _showErrorDialog(error.toString());
-                          });
-                        } on FirebaseAuthException catch (e) {
-                          if (e.code == 'user-not-found') {
-                            pr.close();
-                            print('No user found for that email.');
-                            _showErrorDialog("'Wrong password provided for that user.");
-                          } else if (e.code == 'wrong-password') {
-                            pr.close();
-                            print('Wrong password provided for that user.');
-                            _showErrorDialog("Wrong password provided for that user.");
-                          }
-                          else{
-                            _showErrorDialog(e.message.toString());
-                          }
-                        }
+                      if (_formKey.currentState!.validate()) {
+                        login();
                       }
                     },
                     child: Container(

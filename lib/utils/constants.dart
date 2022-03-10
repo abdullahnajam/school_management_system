@@ -13,3 +13,16 @@ const serverToken="AAAAp-jUd-Y:APA91bH5eKykWgIpIm852lY1GD6mAdZ8JDn7BYfvuslZpehQO
 
 
 const defaultPadding = 16.0;
+
+Iterable<List<T>> combinations<T>(List<List<T>> lists, [int index = 0, List<T>? prefix,]) sync* {
+  prefix ??= <T>[];
+  if (lists.length == index) {
+    yield prefix.toList();
+  }
+  else {
+    for (final value in lists[index]) {
+      yield* combinations(lists, index + 1, prefix..add(value));
+      prefix.removeLast();
+    }
+  }
+}

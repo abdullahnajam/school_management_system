@@ -133,7 +133,7 @@ var _priceController=TextEditingController();
 var _stockController=TextEditingController();
 var _skuController=TextEditingController();
 Future<void> _showEdit(BuildContext context,UniformItemModel model) async {
-  String _variationId=model.variationId;
+
   return showDialog<void>(
     context: context,
     barrierDismissible: true, // user must tap button!
@@ -146,7 +146,6 @@ Future<void> _showEdit(BuildContext context,UniformItemModel model) async {
           _priceController.text=model.price.toString();
           _stockController.text=model.stock.toString();
           _skuController.text=model.sku.toString();
-          _variationController.text=model.variation;
 
 
 
@@ -434,133 +433,6 @@ Future<void> _showEdit(BuildContext context,UniformItemModel model) async {
 
                             ],
                           ),
-                          SizedBox(height: 10,),
-                          Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Variation",
-                                style: Theme.of(context).textTheme.bodyText1!.apply(color: Colors.black),
-                              ),
-                              TextFormField(
-                                readOnly: true,
-                                onTap: (){
-                                  showDialog(
-                                      context: context,
-                                      builder: (BuildContext context){
-                                        return StatefulBuilder(
-                                          builder: (context,setState){
-                                            return Dialog(
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: const BorderRadius.all(
-                                                  Radius.circular(10.0),
-                                                ),
-                                              ),
-                                              insetAnimationDuration: const Duration(seconds: 1),
-                                              insetAnimationCurve: Curves.fastOutSlowIn,
-                                              elevation: 2,
-                                              child: Container(
-                                                width: MediaQuery.of(context).size.width*0.3,
-                                                child: StreamBuilder<QuerySnapshot>(
-                                                  stream: FirebaseFirestore.instance.collection('supply_variations').snapshots(),
-                                                  builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-                                                    if (snapshot.hasError) {
-                                                      return Center(
-                                                        child: Column(
-                                                          children: [
-                                                            Image.asset("assets/images/wrong.png",width: 150,height: 150,),
-                                                            Text("Something Went Wrong",style: TextStyle(color: Colors.black))
-
-                                                          ],
-                                                        ),
-                                                      );
-                                                    }
-
-                                                    if (snapshot.connectionState == ConnectionState.waiting) {
-                                                      return Center(
-                                                        child: CircularProgressIndicator(),
-                                                      );
-                                                    }
-                                                    if (snapshot.data!.size==0){
-                                                      return Center(
-                                                        child: Column(
-                                                          children: [
-                                                            Image.asset("assets/images/empty.png",width: 150,height: 150,),
-                                                            Text("No Variation Added",style: TextStyle(color: Colors.black))
-
-                                                          ],
-                                                        ),
-                                                      );
-
-                                                    }
-
-                                                    return new ListView(
-                                                      shrinkWrap: true,
-                                                      children: snapshot.data!.docs.map((DocumentSnapshot document) {
-                                                        Map<String, dynamic> data = document.data() as Map<String, dynamic>;
-
-                                                        return new Padding(
-                                                          padding: const EdgeInsets.all(15.0),
-                                                          child: ListTile(
-                                                            onTap: (){
-                                                              setState(() {
-                                                                _variationController.text="${data['name']}";
-                                                                _variationId=document.reference.id;
-                                                              });
-                                                              Navigator.pop(context);
-                                                            },
-                                                            title: Text("${data['name']}",style: TextStyle(color: Colors.black),),
-                                                          ),
-                                                        );
-                                                      }).toList(),
-                                                    );
-                                                  },
-                                                ),
-                                              ),
-                                            );
-                                          },
-                                        );
-                                      }
-                                  );
-                                },
-                                controller: _variationController,
-                                style: TextStyle(color: Colors.black),
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Please enter some text';
-                                  }
-                                  return null;
-                                },
-                                decoration: InputDecoration(
-                                  contentPadding: EdgeInsets.all(15),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(7.0),
-                                    borderSide: BorderSide(
-                                      color: primaryColor,
-                                    ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(7.0),
-                                    borderSide: BorderSide(
-                                        color: primaryColor,
-                                        width: 0.5
-                                    ),
-                                  ),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(7.0),
-                                    borderSide: BorderSide(
-                                      color: primaryColor,
-                                      width: 0.5,
-                                    ),
-                                  ),
-                                  hintText: "",
-                                  floatingLabelBehavior: FloatingLabelBehavior.always,
-                                ),
-                              ),
-
-                            ],
-                          ),
 
 
 
@@ -572,13 +444,12 @@ Future<void> _showEdit(BuildContext context,UniformItemModel model) async {
                               pr.show(max: 100, msg: "Adding");
                               FirebaseFirestore.instance.collection('supply_items').doc(model.id).update({
                                 'name': _nameController.text,
-                                'variation': _variationController.text,
+
                                 'price': int.parse(_priceController.text),
                                 'stock': int.parse(_stockController.text),
                                 'sku': int.parse(_skuController.text),
                                 //'category': _categoryController.text,
                                 'code': _codeController.text,
-                                'variationId': _variationId,
                                 //'categoryId': _categoryId,
                               }).then((value) {
                                 pr.close();
@@ -613,7 +484,7 @@ DataRow _buildListItem(BuildContext context, DocumentSnapshot data) {
       cells: [
     DataCell(Text(model.name)),
         DataCell(Text(model.code)),
-        DataCell(Text(model.variation,maxLines: 1,)),
+        DataCell(Text(model.description,maxLines: 1,)),
         //DataCell(Text(model.category)),
         DataCell(Text(model.price.toString())),
         DataCell(Text(model.stock.toString())),
