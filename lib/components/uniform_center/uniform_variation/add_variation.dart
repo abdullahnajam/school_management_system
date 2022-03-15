@@ -330,15 +330,16 @@ class _AddUniformVariationState extends State<AddUniformVariation> {
                   ),
                   onPressed: () async{
                     String id = DateTime.now().millisecondsSinceEpoch.toString();
-                    await addUniformItem(id);
                     final ProgressDialog pr = ProgressDialog(context: context);
-                    pr.show(max: widget.variants.length, msg: "Adding variants");
-                    for(int i=0;i<widget.variants.length;i++){
-                      await addUniformVariation(i,id);
-                    }
-                    for(int i=0;i<widget.selectedUniformItemAttributeModel.length;i++){
-                      await addUniformVariation(i,id);
-                    }
+                    pr.show(max: 100, msg: "Adding variants",barrierDismissible: true);
+                    await addUniformItem(id).then((value)async{
+                      for(int i=0;i<widget.variants.length;i++){
+                        await addUniformVariation(i,id);
+                      }
+                      for(int i=0;i<widget.selectedUniformItemAttributeModel.length;i++){
+                        await addSelectedUniformAttribute(i,id);
+                      }
+                    });
                     pr.close();
                   },
                   icon: Icon(Icons.add),

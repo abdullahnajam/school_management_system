@@ -42,6 +42,7 @@ class _AddUniformItemState extends State<AddUniformItem> {
   List<List<UniformAttributeModel>> attributeValues=[];
   List<UniformAttributeModel> attributes=[];
   Future<List<UniformAttributeModel>> getAttributes()async{
+    attributes=[];
     await FirebaseFirestore.instance.collection('uniform_attributes').get().then((QuerySnapshot querySnapshot) {
       querySnapshot.docs.forEach((doc) async{
         Map<String, dynamic> data = doc.data()! as Map<String, dynamic>;
@@ -234,9 +235,9 @@ class _AddUniformItemState extends State<AddUniformItem> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: SingleChildScrollView(
+      child: Container(
         padding: EdgeInsets.all(defaultPadding),
-        child: Column(
+        child: ListView(
           children: [
             Header("Uniform Item",widget._scaffoldKey),
             SizedBox(height: defaultPadding),
@@ -1012,14 +1013,14 @@ class _AddUniformItemState extends State<AddUniformItem> {
                       List<List<String>> selectedAttributeValuesName=[];
                       List<SelectedUniformItemAttributeModel> selectedAttributeObj=[];
 
+                      print("selectedValues ${selectedValues.length} attributes ${attributes.length}");
                       for(int j=0;j<selectedValues.length;j++){
                         selectedAttributeValuesName.add([]);
                         String id=attributes[j].id;
                         String name=attributes[j].name;
                         List valueIds=[];
+
                         for(int i=0;i<selectedValues[j].length;i++){
-
-
                           if(selectedValues[j][i]){
                             valueIds.add(attributeValues[j][i].id);
                             selectedAttributeValuesName[selectedAttributeValuesName.length-1].add(attributeValues[j][i].name);

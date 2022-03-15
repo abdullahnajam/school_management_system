@@ -6,6 +6,7 @@ class UniformAttributeModel{
   int datePosted;
 
 
+  UniformAttributeModel(this.id, this.name, this.isArchived, this.datePosted);
 
   UniformAttributeModel.fromMap(Map<String,dynamic> map,String key)
       : id=key,

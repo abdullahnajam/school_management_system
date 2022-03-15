@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:html';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -11,6 +12,7 @@ import 'package:lottie/lottie.dart';
 import 'package:school_management_system/components/uniform_center/uniform_delivery/uniform_delivery_list.dart';
 import 'package:school_management_system/model/checklist_model.dart';
 import 'package:school_management_system/model/student_model.dart';
+import 'package:school_management_system/model/uniform/uniform_attribute_model.dart';
 import 'package:school_management_system/model/uniform/uniform_delivery_model.dart';
 import 'package:school_management_system/model/uniform/uniform_item_model.dart';
 import 'package:school_management_system/model/uniform/uniform_variant_model.dart';
@@ -452,8 +454,36 @@ class _UniformAddDeliveryItemState extends State<UniformAddDeliveryItem> {
                               Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
                               UniformItemModel item=UniformItemModel.fromMap(data, document.reference.id);
                               return InkWell(
-                                onTap: (){
+                                onTap: ()async{
+                                  List<SelectedUniformItemAttributeModel> valueList=[];
+                                  UniformAttributeModel temp=UniformAttributeModel("","",false,0);
+
+                                  await FirebaseFirestore.instance.collection('selected_item_attributes').where("itemId",isEqualTo: item.id).get().then((QuerySnapshot querySnapshot) {
+                                    querySnapshot.docs.forEach((doc) {
+                                      Map<String, dynamic> values = doc.data()! as Map<String, dynamic>;
+                                      valueList.add(SelectedUniformItemAttributeModel.fromMap(values, doc.reference.id));
+
+                                    });
+                                  });
+                                  List<List<_VaraiantSelection>> variantList=[];
+                                  valueList.forEach((element) =>variantList.add([]));
+                                  print("value length ${valueList.length} variant length ${variantList.length}");
+                                  for(int i=0;i<valueList.length;i++){
+                                    await FirebaseFirestore.instance.collection('attribute_values').get().then((QuerySnapshot querySnapshot) {
+                                      querySnapshot.docs.forEach((doc) {
+                                        Map<String, dynamic> data = doc.data()! as Map<String, dynamic>;
+                                        if(valueList[i].valueIds.contains(doc.reference.id)){
+                                          _VaraiantSelection _variant=_VaraiantSelection(UniformAttributeModel.fromMap(data, doc.reference.id), false);
+                                          variantList[i].add(_variant);
+                                        }
+
+                                      });
+                                    });
+                                  }
+
+
                                   setState(() {
+                                   
                                     VariantModel variant=VariantModel(
                                       "",
                                       "",
@@ -468,7 +498,7 @@ class _UniformAddDeliveryItemState extends State<UniformAddDeliveryItem> {
                                     );
                                     int index=list.length>0?list.length-1:0;
                                     _ItemDeliveryModel model=_ItemDeliveryModel(1, item, variant);
-                                    showProductDetail(model);
+                                    showProductDetail(model,valueList,variantList);
 
                                     //list.add(model);
                                   });
@@ -875,15 +905,18 @@ class _UniformAddDeliveryItemState extends State<UniformAddDeliveryItem> {
   }
 
 
-  Future showProductDetail(_ItemDeliveryModel model){
+  Future showProductDetail(_ItemDeliveryModel model,List<SelectedUniformItemAttributeModel> valueList,List<List<_VaraiantSelection>> variantList){
     String image=model.item.image;
     int totalPrice=model.item.price;
+
     return showDialog(
         context: context,
         builder: (BuildContext context){
           return StatefulBuilder(
             builder: (context,setState){
+
               return Dialog(
+
                 shape: RoundedRectangleBorder(
                   borderRadius: const BorderRadius.all(
                     Radius.circular(10.0),
@@ -894,7 +927,7 @@ class _UniformAddDeliveryItemState extends State<UniformAddDeliveryItem> {
                 elevation: 2,
                 child: Container(
                   width: MediaQuery.of(context).size.width*0.7,
-                  height: MediaQuery.of(context).size.height*0.7,
+                  height: MediaQuery.of(context).size.height,
                   child: Row(
 
                     children: [
@@ -941,7 +974,7 @@ class _UniformAddDeliveryItemState extends State<UniformAddDeliveryItem> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Expanded(
-                                flex: 4,
+                                flex: 3,
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -971,7 +1004,7 @@ class _UniformAddDeliveryItemState extends State<UniformAddDeliveryItem> {
                                 ),
                               ),
                               Expanded(
-                                flex: 4,
+                                flex: 2,
                                 child: Column(
                                   children: [
                                     Divider(color: Colors.black54,),
@@ -1042,6 +1075,66 @@ class _UniformAddDeliveryItemState extends State<UniformAddDeliveryItem> {
                                 ),
                               ),
                               Expanded(
+                                flex: 3,
+                                  child: ListView.builder(
+                                      shrinkWrap: true,
+                                      itemCount: valueList.length,
+                                      itemBuilder: (BuildContext ctx, index) {
+                                        return Row(
+                                          children: [
+                                            Container(
+                                              margin: EdgeInsets.only(right: 10),
+                                              alignment: Alignment.center,
+                                              child: Text(valueList[index].name),
+                                              padding: EdgeInsets.all(10),
+                                              decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  border: Border.all(color: primaryColor),
+                                                  borderRadius: BorderRadius.circular(7)
+                                              ),
+                                            ),
+                                            Expanded(
+                                              child: Container(
+                                                height: 50,
+                                                child: ListView.builder(
+                                                  shrinkWrap: true,
+                                                  scrollDirection: Axis.horizontal,
+                                                  itemCount: variantList[index].length,
+                                                  itemBuilder: (BuildContext context,int i){
+                                                    return InkWell(
+                                                      onTap: (){
+                                                        for(int j=0;j<variantList[index].length;j++){
+                                                          setState(() {
+                                                            if(j==i){
+                                                              variantList[index][j].isSelected=true;
+                                                            }
+                                                            else{
+                                                              variantList[index][j].isSelected=false;
+                                                            }
+                                                          });
+                                                        }
+
+                                                      },
+                                                      child: Container(
+                                                        margin: EdgeInsets.only(right: 10,bottom: 10),
+                                                        alignment: Alignment.center,
+                                                        child: Text(variantList[index][i].attribute.name,style: TextStyle(color: Colors.white),),
+                                                        padding: EdgeInsets.all(10),
+                                                        decoration: BoxDecoration(
+                                                            color: variantList[index][i].isSelected?Colors.blueGrey:primaryColor,
+                                                            borderRadius: BorderRadius.circular(7)
+                                                        ),
+                                                      ),
+                                                    );
+                                                  },
+                                                ),
+                                              ),
+                                            )
+                                          ],
+                                        );
+                                      }),
+                              ),
+                              Expanded(
                                 flex: 2,
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -1070,7 +1163,46 @@ class _UniformAddDeliveryItemState extends State<UniformAddDeliveryItem> {
                                           defaultPadding / (Responsive.isMobile(context) ? 2 : 1),
                                         ),
                                       ),
-                                      onPressed: () {
+                                      onPressed: () async{
+                                        List<VariantModel> list=[];
+                                        VariantModel? availableVariant;
+                                        List<String> selectedValues=[];
+                                        variantList.forEach((element) {
+                                          element.forEach((v) {
+                                            if(v.isSelected)
+                                              selectedValues.add(v.attribute.name);
+                                          });
+                                        });
+                                        await FirebaseFirestore.instance.collection('uniform_variations').where("itemId",isEqualTo: model.item.id).get().then((QuerySnapshot querySnapshot) {
+                                          querySnapshot.docs.forEach((doc) {
+                                            Map<String, dynamic> firebaseData = doc.data()! as Map<String, dynamic>;
+                                            VariantModel model=VariantModel.fromMap(firebaseData,doc.reference.id);
+                                            list.add(model);
+                                          });
+                                        });
+
+                                        list.forEach((element) {
+                                          List<String> b = (element.name.split(', '));
+                                          if(b.length==selectedValues.length){
+                                            List<bool> available=[];
+                                            for(int n=0;n<b.length;n++){
+                                              if(selectedValues.contains(b[n]))
+                                                available.add(true);
+                                              else
+                                                available.add(false);
+                                            }
+                                            Iterable<bool> selectedBool=available.where((element) => element==true);
+                                            if(selectedBool.length==selectedValues.length){
+                                              availableVariant=element;
+                                            }
+                                          }
+
+                                        });
+                                        print(availableVariant!.id);
+
+                                        if(availableVariant!=null){
+                                          model.variants=availableVariant!;
+                                        }
                                         addItemToCart(model);
                                         Navigator.pop(context);
 
@@ -1107,4 +1239,10 @@ class _ItemDeliveryModel{
   VariantModel variants;
 
   _ItemDeliveryModel(this.quantity, this.item, this.variants);
+}
+class _VaraiantSelection{
+  UniformAttributeModel attribute;
+  bool isSelected;
+
+  _VaraiantSelection(this.attribute, this.isSelected);
 }
