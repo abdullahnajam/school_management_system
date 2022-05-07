@@ -2878,7 +2878,14 @@ class _RevenueListState extends State<RevenueList> {
                                 'visaPayment': visa,
                                 'masterCardPayment': bank,
                                 'message':_messageController.text
-                              }).then((value) => Navigator.pop(context));
+                              }).then((value){
+                                if(model.status=="Not Paid"){
+                                  FirebaseFirestore.instance.collection('fees').doc(model.id).update({
+                                    'status': "Paid",
+                                  });
+                                }
+                                Navigator.pop(context);
+                              });
 
 
                             },
@@ -3791,7 +3798,7 @@ class _RevenueListState extends State<RevenueList> {
                                 'bankReceiptNumber':_bankReceiptNumberController.text!=""?paymentInfoModel.bankReceiptNumber:_bankReceiptNumberController.text,
                                 'image':imageUrl,
                                 'discountCategory':_discountCategoryController.text!=""?paymentInfoModel.discountCategory:_discountCategoryController.text,
-                                'discountName':_discountNameController.text!=""?paymentInfoModel.discountName:_discountNameController,
+                                'discountName':_discountNameController.text!=""?paymentInfoModel.discountName:_discountNameController.text,
                                 'finalAmount':_finalAmountController.text!=""?paymentInfoModel.finalAmount:_finalAmountController.text,
                               });
 
@@ -3840,9 +3847,7 @@ class _RevenueListState extends State<RevenueList> {
           DataCell(Text(model.status.toString()),onTap: (){
             //role=="Accountant"
             _showChangeStatusDialog(model, context);
-            if(model.feeCategory=="Uniform Fees"){
 
-            }
           }),
           DataCell(Text("View"),onTap: ()async{
             if(model.message!="none")
